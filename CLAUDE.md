@@ -85,6 +85,12 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
 - Aktivace ve viewerech (před `</body>`):
   `<script src="/assets/comments.js" data-project="<slug>" data-version="v<N>" data-view="desktop|mobile"></script>`
   Lišta vieweru musí mít `<button class="cbtn" data-comments-toggle hidden>`.
+  Vedle něj si comments.js doskládá akcentní segment „Přidat komentář"
+  (`.cgroup` = jeden celek jako přepínač Počítač/Mobil, stejná výška):
+  komentář jde přidat rovnou, bez otevírání panelu. Zapnutý režim je černý
+  (akcent přebírá zvýrazněná sekce), vypíná se druhým klikem i Escapem
+  a drží stav společně s „Přidat komentář" v panelu. Na úzkém okně zůstane
+  jen „Přidat", `aria-label` celý.
 - Data v Supabase tabulce `comments` (REST `/rest/v1/comments`, RLS přes
   `has_project_access` nad `app_metadata`). Pozice pinu =
   `data-screen-label` sekce plátna +

@@ -4,9 +4,11 @@
  * a v liště tlačítko <button class="cbtn" data-comments-toggle hidden>):
  *   <script src="/assets/comments.js" data-project="arbosis"
  *           data-version="v1" data-view="desktop"></script>
+ * Vedle tlačítka komentářů si skript sám doskládá akcentní segment
+ * „Přidat komentář" – viewer v markupu drží jen [data-comments-toggle].
  *
- * Data: tabulka comments v Supabase (REST /rest/v1/comments, RLS podle
- * user_metadata). Pozice pinu = název sekce (data-screen-label bloku
+ * Data: tabulka comments v Supabase (REST /rest/v1/comments, RLS přes
+ * has_project_access nad app_metadata). Pozice pinu = název sekce (data-screen-label bloku
  * plátna) + relativní souřadnice x/y (0–1) uvnitř sekce, takže pin drží
  * i při změně výšky okolních sekcí. Plátno je vložené přímo v dokumentu
  * (#frame, zmenšované transform: scale), takže vrstva pracuje nad ním bez
@@ -16,7 +18,7 @@
  * a verzi; pin se kreslí jen pro aktuální pohled. Klik na komentář
  * z druhého pohledu přejde na druhý viewer s kotvou #c=<id>. Komentář ze
  * sekce, která už v návrhu není, pin nemá a panel to u něj poznamená.
- * Mazání neexistuje, vlákno se uklízí přes „Vyřešeno".
+ * Klient vlákno uklízí přes „Vyřešeno", mazat smí jen admin.
  *
  * Fáze B:
  * – filtry (stav / zobrazení / autor) nad seznamem, kombinují se, drží se
@@ -58,6 +60,18 @@
     '.cbtn[aria-expanded="true"]{background:var(--white,#fff);color:var(--black,#000)}',
     '.cbtn:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
     '.cbtn[hidden]{display:none}',
+    /* segment „Přidat komentář" přilepený k tlačítku komentářů (jako Počítač/Mobil);
+       akcentní, dokud není režim zapnutý – pak akcent přebírá zvýrazněná sekce */
+    '.cgroup{display:inline-flex;flex:none;border:1px solid var(--inverse-line,rgba(255,255,255,.24))}',
+    '.cgroup .cbtn{border:0;height:28px}',
+    '.cbadd{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 12px;flex:none;',
+    'background:var(--accent,#ff4d00);border:0;',
+    'border-left:1px solid var(--inverse-line,rgba(255,255,255,.24));border-radius:0;',
+    'color:var(--accent-ink,#000);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;',
+    'transition:background var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1)),',
+    'color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
+    '.cbadd:hover,.cbadd[aria-pressed="true"]{background:var(--black,#000);color:var(--white,#fff)}',
+    '.cbadd:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
     /* piny nad plátnem */
     '.cpins{position:fixed;inset:0;z-index:15;pointer-events:none}',
     '.cpins.coff .cpin{pointer-events:none}',
@@ -204,10 +218,12 @@
     'body.c-open{padding-right:0}',
     '.cbtn{padding:0 10px}',
     '.cbtn .cbtn-t{display:none}',
+    '.cbadd{padding:0 10px}',
+    '.cbadd .cbadd-l{display:none}',
     '.ccomp{left:16px!important;right:16px;width:auto;top:auto!important;bottom:16px}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
-    '.cpanel,.cpin,.cbtn,.cadd,.cprim,.cghost,.cpanel-x,.creply{transition:none!important;animation:none!important}',
+    '.cpanel,.cpin,.cbtn,.cbadd,.cadd,.cprim,.cghost,.cpanel-x,.creply{transition:none!important;animation:none!important}',
     '}'
   ].join('');
 
@@ -227,7 +243,7 @@
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
   var narrow = window.matchMedia && window.matchMedia('(max-width: 560px)');
 
-  var barBtn, barCount, pinsLayer, catchLayer, panel, listEl, countEl, noteEl,
+  var barBtn, barCount, barAdd, pinsLayer, catchLayer, panel, listEl, countEl, noteEl,
       addBtn, exportBtn, authorSel, filtersEl, comp, compText, compErr;
   var pinEls = {};          /* id → element pinu */
   var draftPinEl = null;
@@ -864,12 +880,17 @@
     return null;
   }
 
+  function markPick(on) {
+    addBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    barAdd.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+
   function enterPick() {
     if (picking) return;
     picking = true;
     catchLayer.classList.add('on');
     pinsLayer.classList.add('coff');
-    addBtn.setAttribute('aria-pressed', 'true');
+    markPick(true);
     schedule();
   }
 
@@ -878,8 +899,16 @@
     picking = false;
     catchLayer.classList.remove('on');
     pinsLayer.classList.remove('coff');
-    addBtn.setAttribute('aria-pressed', 'false');
+    markPick(false);
     clearHl();
+  }
+
+  /* Zapnutí/vypnutí režimu přidávání – z lišty i z panelu. */
+  function togglePick() {
+    if (picking) { exitPick(); return; }
+    closeComposer();
+    if (narrow.matches) closePanel();
+    enterPick();
   }
 
   /* ---------- composer nového komentáře ---------- */
@@ -1051,6 +1080,22 @@
     barBtn.setAttribute('aria-expanded', 'false');
     barCount = barBtn.querySelector('.cbtn-n');
 
+    /* Tlačítko komentářů a „Přidat komentář" tvoří v liště jeden segment –
+       přidat jde rovnou, bez otevírání panelu. Skládá se tady, aby viewer
+       v markupu držel jen [data-comments-toggle]. */
+    var group = el('span', 'cgroup');
+    barBtn.parentNode.insertBefore(group, barBtn);
+    group.appendChild(barBtn);
+    barAdd = el('button', 'cbadd');
+    barAdd.type = 'button';
+    barAdd.setAttribute('data-comments-add', '');
+    barAdd.setAttribute('aria-pressed', 'false');
+    /* na úzkém okně zůstane vidět jen „Přidat", název pro čtečky je celý */
+    barAdd.setAttribute('aria-label', 'Přidat komentář');
+    barAdd.appendChild(el('span', null, 'Přidat'));
+    barAdd.appendChild(el('span', 'cbadd-l', 'komentář'));
+    group.appendChild(barAdd);
+
     pinsLayer = el('div', 'cpins');
     pinsLayer.setAttribute('aria-hidden', 'true');
     document.body.appendChild(pinsLayer);
@@ -1130,12 +1175,8 @@
       if (panelOpen) closePanel(); else openPanel();
     });
     x.addEventListener('click', closePanel);
-    addBtn.addEventListener('click', function () {
-      if (picking) { exitPick(); return; }
-      closeComposer();
-      if (narrow.matches) closePanel();
-      enterPick();
-    });
+    addBtn.addEventListener('click', togglePick);
+    barAdd.addEventListener('click', togglePick);
     authorSel.addEventListener('change', function () {
       filters.author = authorSel.value;
       saveFilters();
