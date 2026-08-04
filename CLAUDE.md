@@ -10,7 +10,9 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
 - `/index.html` – rozcestník za přihlášením (gate.js bez `data-client`,
   pustí každého přihlášeného). Seznam projektů se generuje z tabulky
   `projects` (RLS vrací jen povolené): název + případný podtitulek + šipka.
-  Pro roli admin sekce „Správa" (`/assets/admin.js`).
+  Pro roli admin nenápadný přepínač „Správa" (`#admintoggle`, šedý do
+  otevření) a pod ním sekce Správa (`/assets/admin.js`) – hlavní na
+  rozcestníku zůstávají projekty.
 - `/<slug>/index.html` – stránka klienta, za bránou.
   Vzor s nahranou verzí: `arbosis/index.html`. Vzor bez verze: `anse/index.html`.
 - `/<slug>/v<N>/desktop.html` + `mobile.html` – prohlížeč návrhu, za bránou.
@@ -88,15 +90,17 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
   `data-screen-label` sekce plátna +
   relativní x/y (0–1) uvnitř sekce. Panel ukazuje oba pohledy pro
   projekt+verzi, pin se kreslí jen v aktuálním pohledu; klik na komentář
-  z druhého pohledu přechází na druhý viewer s `#c=<id>`. Mazání
-  neexistuje, vlákna se uklízí přes „Vyřešeno".
+  z druhého pohledu přechází na druhý viewer s `#c=<id>`. Klient vlákna
+  uklízí přes „Vyřešeno"; mazat smí jen admin („Smazat" s potvrzením,
+  vlastní i cizí, smazání kořene vezme kaskádou i odpovědi).
 - Fáze B: filtry stav/zobrazení/autor (kombinují se, localStorage
   `draft-filters-<projekt>`, platí i pro piny; počítadlo v liště je vždy
   počet nevyřešených), nepřečtené (localStorage `seen-<projekt>-<verze>`,
   tečka u jména + „(N · M nových)" v liště, nuluje se otevřením panelu),
   trvalé odkazy `#c=<id>` + „Kopírovat odkaz" u komentáře, „Export" do
-  Markdownu (jen role admin). Na klientském indexu štítek počtu
-  komentářů u verze (`[data-vc="v<N>"]` + inline skript).
+  Markdownu (jen role admin). Na klientském indexu štítek u verze
+  (`[data-vc="v<N>"]` + inline skript): nejdřív počet otevřených akcentní
+  barvou, pak „·" a celkový počet; bez otevřených jen celkový počet.
 
 ## Projekty a Správa (admin.js)
 
@@ -110,9 +114,18 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
 - Admin logika výhradně přes SQL funkce (security definer, kontrola role
   uvnitř) volané přes `/rest/v1/rpc/` tokenem přihlášeného admina:
   `admin_list_users`, `admin_set_user_projects` (zapisuje `app_metadata` i
-  zrcadlo v `user_metadata`). **Service_role klíč nikdy v repu ani v
+  zrcadlo v `user_metadata`), `admin_set_user_password`,
+  `admin_create_user`. **Service_role klíč nikdy v repu ani v
   prohlížeči.** Skrytí Správy v UI není bezpečnostní prvek – bezpečnost
   drží RLS a funkce.
+- Nový účet jde založit v „Přidat uživatele" (e-mail, jméno, příjmení):
+  vznikne bez role a bez přístupů, heslo se vygeneruje a rovnou ukáže.
+  Roli admin lze dát jen zásahem do `app_metadata` v Supabase.
+- Hesla: uložené heslo je bcrypt hash, přečíst ho nelze. Ve Správě jde jen
+  nastavit nové – vygeneruje se v prohlížeči, uloží přes
+  `admin_set_user_password` a zůstane zobrazené do zavření stránky
+  (tečky, najetím se odkryje, kliknutím zkopíruje). Do repa nikdy.
+  Adminovi smí heslo měnit jen on sám (hlídá SQL funkce).
 - Grants: `anon` má na `projects`/`comments` jen SELECT (RLS vrací prázdno,
   keepalive dostává 200 `[]`), `authenticated` bez DELETE na `comments`
   (mazání neexistuje, jen „Vyřešeno").

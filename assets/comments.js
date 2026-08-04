@@ -128,6 +128,10 @@
     'transition:color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
     '.ccopy:hover{color:var(--accent,#ff4d00)}',
     '.ccopy:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
+    '.cdel{margin-left:auto;font-weight:600;color:var(--gray-500,#6f6f6f);text-decoration:none;cursor:pointer;',
+    'transition:color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
+    '.cdel:hover{color:var(--accent,#ff4d00)}',
+    '.cdel:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
     '.cnote{padding:10px 20px;font-size:12.5px;font-weight:600;color:var(--accent,#ff4d00);',
     'border-bottom:1px solid var(--gray-300,#e2e2e2)}',
     '.cnote[hidden]{display:none}',
@@ -261,6 +265,18 @@
     try { localStorage.setItem(SEEN_KEY, String(ts)); } catch (e) { /* nevadí */ }
   }
 
+  function isAdmin() {
+    return !!(window.draftUser && window.draftUser.role === 'admin');
+  }
+
+  /* „Smazat" se vykresluje jen adminovi; skutečnou kontrolu drží RLS. */
+  function deleteLink(id) {
+    var a = el('a', 'cdel', 'Smazat');
+    a.href = '#';
+    a.setAttribute('data-del', id);
+    return a;
+  }
+
   function passes(c) {
     if (filters.state === 'open' && c.resolved) return false;
     if (filters.state === 'resolved' && !c.resolved) return false;
@@ -318,6 +334,14 @@
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({ resolved: value })
+    });
+  }
+
+  /* Mazání smí jen admin (hlídá RLS). Odpovědi bere kaskáda v databázi. */
+  function deleteRow(id) {
+    return restFetch(REST + '?id=eq.' + encodeURIComponent(id), {
+      method: 'DELETE',
+      headers: { Prefer: 'return=minimal' }
     });
   }
 
@@ -716,6 +740,7 @@
       copyA.setAttribute('data-copy', c.id);
       act.appendChild(copyA);
     }
+    if (isAdmin() && !c.pending) act.appendChild(deleteLink(c.id));
     main.appendChild(act);
 
     if (c.resolved) {
@@ -743,6 +768,7 @@
             rCopy.href = '#';
             rCopy.setAttribute('data-copy', kid.id);
             rAct.appendChild(rCopy);
+            if (isAdmin()) rAct.appendChild(deleteLink(kid.id));
             rep.appendChild(rAct);
           }
           reps.appendChild(rep);
@@ -1163,6 +1189,28 @@
           copy.textContent = 'Zkopírováno';
           setTimeout(function () { copy.textContent = 'Kopírovat odkaz'; }, 1500);
         }, function () { /* schránka nedostupná – text se nemění */ });
+        return;
+      }
+      var del = t.closest('[data-del]');
+      if (del) {
+        e.preventDefault();
+        var delId = del.getAttribute('data-del');
+        var dc = byId(delId);
+        if (!dc) return;
+        var kidCount = replies(delId).length;
+        if (!window.confirm(kidCount
+          ? 'Smazat komentář včetně ' + pluralReplies(kidCount) + '? Nelze vrátit.'
+          : 'Smazat komentář? Nelze vrátit.')) return;
+        deleteRow(delId).then(function () {
+          items = items.filter(function (x) {
+            return x.id !== delId && x.parent_id !== delId;
+          });
+          if (replyFor === delId) { replyFor = null; replyText = ''; }
+          render();
+        }, function () {
+          noteEl.textContent = 'Komentář se nepodařilo smazat – zkuste to znovu.';
+          noteEl.hidden = false;
+        });
         return;
       }
       var reply = t.closest('[data-reply]');

@@ -65,11 +65,22 @@
     'color:var(--gray-500);cursor:pointer;white-space:nowrap}',
     '.a-checks input{width:15px;height:15px;margin:0;accent-color:var(--black)}',
     '.a-checks input:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}',
+    /* Heslo: maskované tečkami, čitelné až při najetí / focusu, klik kopíruje */
+    '.a-pass{flex:none;display:inline-flex;align-items:center;gap:10px;white-space:nowrap}',
+    '.a-pval{border:1px solid var(--gray-300);border-radius:0;background:var(--white);',
+    'padding:4px 8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;',
+    'color:var(--black);cursor:pointer;transition:color var(--dur-fast) var(--ease-out)}',
+    '.a-pval .a-pw{display:none}',
+    '.a-pval:hover .a-pw,.a-pval:focus-visible .a-pw{display:inline}',
+    '.a-pval:hover .a-pmask,.a-pval:focus-visible .a-pmask{display:none}',
+    '.a-pval:hover,.a-pval:focus-visible{color:var(--accent)}',
+    '.a-pval:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}',
+    '.a-pval[hidden]{display:none}',
     '.a-note{margin-top:14px;font-size:12.5px;color:var(--gray-500)}',
     '@media (max-width:560px){.a-slug{width:100%}.a-checks,.a-all{margin-left:0}}'
   ].join('');
 
-  var root, projRows, userRows, addWrap, addForm = null;
+  var root, projRows, userRows, addWrap, userAddWrap, addForm = null, userForm = null;
   var projects = [];
   var users = [];
 
@@ -269,6 +280,95 @@
     return full || u.email;
   }
 
+  /* Heslo v databázi je bcrypt hash – přečíst ho nelze. Proto se dá jen
+     nastavit nové: vygeneruje se v prohlížeči, uloží přes
+     admin_set_user_password a do zavření stránky zůstane zobrazené
+     maskované (najetím se odkryje, kliknutím zkopíruje). */
+  function randomPassword() {
+    var abc = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var bytes = new Uint32Array(20);
+    (window.crypto || window.msCrypto).getRandomValues(bytes);
+    var out = '';
+    for (var i = 0; i < bytes.length; i++) out += abc.charAt(bytes[i] % abc.length);
+    return out;
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      ta.remove();
+      ok ? resolve() : reject(new Error('clipboard'));
+    });
+  }
+
+  /* Heslo vygenerované v tomto načtení stránky – drží se jen v paměti,
+     aby ho šlo po založení účtu ukázat i po překreslení seznamu. */
+  var freshPasswords = {};
+
+  function passwordCell(u, status) {
+    var wrap = el('span', 'a-pass');
+    var shown = el('button', 'a-pval');
+    shown.type = 'button';
+    shown.hidden = true;
+    var gen = el('button', 'a-link', 'Nové heslo');
+    gen.type = 'button';
+
+    shown.addEventListener('click', function () {
+      copyText(shown.getAttribute('data-pw') || '').then(function () {
+        flash(status, true, 'Heslo zkopírováno');
+      }, function () {
+        flash(status, false, 'Schránka není dostupná – heslo odkryjte najetím.');
+      });
+    });
+
+    function reveal(pw) {
+      shown.setAttribute('data-pw', pw);
+      shown.textContent = '';
+      var mask = el('span', 'a-pmask', new Array(pw.length + 1).join('•'));
+      mask.setAttribute('aria-hidden', 'true');
+      shown.appendChild(mask);
+      shown.appendChild(el('span', 'a-pw', pw));
+      shown.title = 'Najetím odkryjete, kliknutím zkopírujete';
+      shown.setAttribute('aria-label', 'Zkopírovat heslo');
+      shown.hidden = false;
+    }
+
+    gen.addEventListener('click', function () {
+      if (!window.confirm('Nastavit uživateli nové heslo? Staré přestane platit.')) return;
+      var pw = randomPassword();
+      gen.disabled = true;
+      rpc('admin_set_user_password', { target_user: u.id, new_password: pw }).then(function () {
+        gen.disabled = false;
+        freshPasswords[u.email] = pw;
+        reveal(pw);
+        copyText(pw).then(function () {
+          flash(status, true, 'Nové heslo nastaveno a zkopírováno');
+        }, function () {
+          flash(status, true, 'Nové heslo nastaveno');
+        });
+      }, function () {
+        gen.disabled = false;
+        flash(status, false, 'Heslo se nepodařilo nastavit – zkuste to znovu.');
+      });
+    });
+
+    if (freshPasswords[u.email]) reveal(freshPasswords[u.email]);
+    wrap.appendChild(shown);
+    wrap.appendChild(gen);
+    return wrap;
+  }
+
   function userRow(u) {
     var row = el('div', 'a-user');
     row.appendChild(el('b', null, userName(u)));
@@ -276,6 +376,10 @@
     var status = el('span', 'a-status', '');
     if (u.role === 'admin') {
       row.appendChild(el('span', 'a-all', 'Přístup ke všemu'));
+      /* heslo si admin může přenastavit jen sám sobě (hlídá SQL funkce) */
+      if (window.draftUser && u.id === window.draftUser.id) {
+        row.appendChild(passwordCell(u, status));
+      }
       row.appendChild(status);
       return row;
     }
@@ -306,6 +410,7 @@
       });
     });
     row.appendChild(checks);
+    row.appendChild(passwordCell(u, status));
     row.appendChild(status);
     return row;
   }
@@ -315,6 +420,69 @@
     users.forEach(function (u) {
       userRows.appendChild(userRow(u));
     });
+  }
+
+  /* Nový účet vzniká bez role a bez přístupů – ty se zaškrtnou až potom.
+     Heslo se vygeneruje tady a hned se ukáže (jinde ho už nezjistíte). */
+  function closeUserForm() {
+    if (userForm) {
+      userForm.remove();
+      userForm = null;
+    }
+  }
+
+  function openUserForm() {
+    if (userForm) return;
+    userForm = el('div', 'a-add');
+    var mail = el('input', 'a-in a-sub');
+    mail.type = 'email';
+    mail.placeholder = 'E-mail';
+    mail.setAttribute('aria-label', 'E-mail');
+    var first = el('input', 'a-in a-name');
+    first.placeholder = 'Jméno';
+    first.setAttribute('aria-label', 'Jméno');
+    var last = el('input', 'a-in a-name');
+    last.placeholder = 'Příjmení';
+    last.setAttribute('aria-label', 'Příjmení');
+    var save = el('button', 'a-btn a-prim', 'Přidat');
+    save.type = 'button';
+    var cancel = el('button', 'a-btn', 'Zrušit');
+    cancel.type = 'button';
+    var status = el('span', 'a-status', '');
+    [mail, first, last, save, cancel, status].forEach(function (n) {
+      userForm.appendChild(n);
+    });
+    userAddWrap.appendChild(userForm);
+    mail.focus();
+
+    save.addEventListener('click', function () {
+      var email = mail.value.trim().toLowerCase();
+      if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email)) {
+        flash(status, false, 'Neplatný e-mail.');
+        mail.focus();
+        return;
+      }
+      var pw = randomPassword();
+      save.disabled = true;
+      rpc('admin_create_user', {
+        new_email: email,
+        new_password: pw,
+        new_first_name: first.value.trim(),
+        new_last_name: last.value.trim()
+      }).then(function () {
+        save.disabled = false;
+        freshPasswords[email] = pw;
+        closeUserForm();
+        reloadUsers();
+        copyText(pw);
+      }, function (err) {
+        save.disabled = false;
+        flash(status, false, String(err && err.message).indexOf('409') > -1
+          ? 'Účet s tímto e-mailem už existuje.'
+          : 'Účet se nepodařilo založit – zkuste to znovu.');
+      });
+    });
+    cancel.addEventListener('click', closeUserForm);
   }
 
   function reloadUsers() {
@@ -339,7 +507,10 @@
     document.head.appendChild(style);
 
     root.textContent = '';
-    root.appendChild(el('h2', 'a-title', 'Správa'));
+    /* Když sekci uvozuje přepínač, nadpis by název jen zopakoval. */
+    if (!document.getElementById('admintoggle')) {
+      root.appendChild(el('h2', 'a-title', 'Správa'));
+    }
 
     var pk = el('div', 'a-kicker');
     pk.appendChild(el('span', 'dot', ''));
@@ -363,11 +534,22 @@
     root.appendChild(uk);
     userRows = el('div', null);
     root.appendChild(userRows);
+    userAddWrap = el('div', null);
+    root.appendChild(userAddWrap);
+    var addUserBtn = el('button', 'a-btn', 'Přidat uživatele');
+    addUserBtn.type = 'button';
+    addUserBtn.style.marginTop = '14px';
+    root.appendChild(addUserBtn);
+    addUserBtn.addEventListener('click', openUserForm);
     root.appendChild(el('p', 'a-note',
-      'Změna přístupu se projeví po příštím přihlášení nebo obnovení session.'));
+      'Změna přístupu se projeví po příštím přihlášení nebo obnovení session. ' +
+      'Uložené heslo nelze zobrazit – lze jen nastavit nové. Zůstane čitelné ' +
+      'do zavření stránky.'));
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && addForm) closeAddForm();
+      if (e.key !== 'Escape') return;
+      if (addForm) closeAddForm();
+      if (userForm) closeUserForm();
     });
 
     root.hidden = false;
@@ -375,12 +557,35 @@
     reloadUsers();
   }
 
+  /* Správa je sbalená pod přepínačem – na rozcestníku mají být vidět
+     hlavně projekty. Obsah se staví až při prvním otevření. */
   function start() {
     if (!window.draftUser || !window.draftAuth || !API) return;
     if (window.draftUser.role !== 'admin') return;
     root = document.getElementById('admin');
     if (!root) return;
-    build();
+    var toggle = document.getElementById('admintoggle');
+    if (!toggle) {
+      build();
+      return;
+    }
+    toggle.hidden = false;
+    var built = false;
+    toggle.addEventListener('click', function () {
+      var open = toggle.getAttribute('aria-expanded') === 'true';
+      if (open) {
+        root.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+        return;
+      }
+      toggle.setAttribute('aria-expanded', 'true');
+      if (!built) {
+        built = true;
+        build();
+      } else {
+        root.hidden = false;
+      }
+    });
   }
 
   if (window.draftUser) {

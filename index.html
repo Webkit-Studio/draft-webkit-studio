@@ -55,6 +55,13 @@
   .project .arr{font-size:18px;color:var(--gray-500);transition:transform var(--dur-base) var(--ease-out),color var(--dur-fast) var(--ease-out)}
   .noresults,.empty{padding:26px 0;border-top:1px solid var(--gray-300);border-bottom:1px solid var(--gray-300);font-size:15px;color:var(--gray-500)}
   .noresults[hidden],.empty[hidden]{display:none}
+  /* Správa je sbalená, dokud si o ni admin neřekne – hlavní jsou projekty */
+  .admintoggle{display:block;margin-top:56px;padding:0;border:0;background:none;border-radius:0;
+    font-family:inherit;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--gray-300);cursor:pointer;transition:color var(--dur-fast) var(--ease-out)}
+  .admintoggle:hover,.admintoggle[aria-expanded="true"]{color:var(--gray-500)}
+  .admintoggle:focus-visible{outline:2px solid var(--focus-ring);outline-offset:4px}
+  .admintoggle[hidden]{display:none}
   @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
@@ -74,6 +81,8 @@
       <p class="noresults" id="noresults" hidden>Nic nenalezeno.</p>
       <p class="empty" id="empty" hidden>Zatím nemáte přiřazený žádný projekt.</p>
       <p class="empty" id="loaderr" hidden>Seznam se nenačetl – zkuste to znovu.</p>
+      <button type="button" id="admintoggle" class="admintoggle" hidden
+              aria-expanded="false" aria-controls="admin">Správa</button>
       <section id="admin" hidden aria-label="Správa"></section>
     </div>
   </main>
