@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Arbosis wireframe v1 – počítač | Webkit.Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#141414;--bg:#2A2A28;--bar:#1C1C1B;--paper:#F7F6F4;--mut:rgba(247,246,244,.6)}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{font-family:'Urbanist',sans-serif;background:var(--bg);display:flex;flex-direction:column}
+  .bar{background:var(--bar);color:var(--paper);display:flex;align-items:center;gap:16px;padding:0 20px;height:52px;flex-shrink:0}
+  .bar a.back{color:var(--paper);text-decoration:none;font-size:13px;font-weight:600;opacity:.75}
+  .bar a.back:hover{opacity:1}
+  .bar .title{font-size:13px;font-weight:600;letter-spacing:.02em;margin:0 auto}
+  .bar .title small{color:var(--mut);font-weight:500;margin-left:8px}
+  .switch{display:flex;gap:2px;background:rgba(247,246,244,.12);border-radius:99px;padding:2px}
+  .switch a{font-size:12.5px;font-weight:600;text-decoration:none;color:var(--paper);padding:7px 14px;border-radius:99px}
+  .switch a[aria-current="true"]{background:var(--paper);color:var(--ink)}
+  .stage{flex:1;overflow:auto;display:flex;justify-content:center;padding:28px 20px}
+  .frame{width:100%;max-width:1440px;height:calc(100vh - 52px - 56px);min-height:480px;background:#fff;border-radius:6px;box-shadow:0 12px 48px rgba(0,0,0,.35)}
+  .frame iframe{width:100%;height:100%;border:0;border-radius:6px}
+  @media (max-width:700px){.bar .title small{display:none}}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <a class="back" href="/arbosis/">← Zpět</a>
+    <span class="title">Arbosis – wireframe<small>v1 · zobrazení pro počítač (max 1440 px)</small></span>
+    <nav class="switch" aria-label="Přepnout zobrazení">
+      <a href="/arbosis/v1/desktop.html" aria-current="true">Počítač</a>
+      <a href="/arbosis/v1/mobile.html">Mobil</a>
+    </nav>
+  </div>
+  <div class="stage">
+    <div class="frame">
+      <iframe src="/arbosis/v1/wireframe.html" title="Wireframe – zobrazení pro počítač"></iframe>
+    </div>
+  </div>
+</body>
+</html>
