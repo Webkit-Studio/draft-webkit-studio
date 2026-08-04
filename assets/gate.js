@@ -77,7 +77,6 @@
     '.wsg-btn:focus-visible{outline:2px solid var(--g-focus-ring);outline-offset:2px}',
     '.wsg-err{margin-top:var(--g-space-3);font-size:var(--g-text-sm);font-weight:600;color:var(--g-accent)}',
     '.wsg-err[hidden]{display:none}',
-    '.wsg-note{margin-top:var(--g-space-4);font-size:var(--g-text-sm);color:var(--g-gray-500)}',
     '.wsg-blocks{position:absolute;right:0;bottom:0;width:128px;height:128px;pointer-events:none}',
     '.wsg-blocks i{position:absolute;display:block;width:var(--g-space-8);height:var(--g-space-8)}',
     '.wsg-blocks i:nth-child(1){right:0;bottom:0;background:var(--g-black);border-bottom-left-radius:100%}',
@@ -124,7 +123,6 @@
           '<button class="wsg-btn" type="submit">Vstoupit</button>' +
         '</form>' +
         '<p class="wsg-err" role="alert" hidden>Nesprávné heslo.</p>' +
-        '<p class="wsg-note">Heslo jste dostali e-mailem.</p>' +
       '</div>' +
       '<div class="wsg-blocks" aria-hidden="true"><i></i><i></i><i></i></div>';
     document.body.appendChild(overlay);

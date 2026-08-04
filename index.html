@@ -9,51 +9,56 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* Tokeny design systému Webkit.Studio (/design/webkit/tokens) */
   :root{
-    --ink:#141414; --paper:#F7F6F4; --line:rgba(20,20,20,.12); --mut:rgba(20,20,20,.55);
+    --black:#000000; --white:#ffffff;
+    --gray-100:#f4f4f4; --gray-300:#e2e2e2; --gray-500:#6f6f6f;
+    --accent:#ff4d00; --accent-ink:#000000; --focus-ring:var(--accent);
+    --font-sans:'Urbanist','Helvetica Neue',Arial,sans-serif;
+    --ease-out:cubic-bezier(0.2,0,0,1); --dur-fast:120ms; --dur-base:200ms;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Urbanist',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+  body{font-family:var(--font-sans);background:var(--white);color:var(--black);min-height:100vh;display:flex;flex-direction:column;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--accent);color:var(--accent-ink)}
   .wrap{width:100%;max-width:720px;margin:0 auto;padding:0 24px}
-  header{padding:40px 0 0}
-  .mark{display:flex;align-items:center;gap:10px}
-  .blocks{display:flex;gap:3px}
-  .blocks span{width:8px;height:14px;background:var(--ink);display:block}
-  .blocks span:nth-child(2){clip-path:polygon(0 0,100% 35%,100% 100%,0 100%)}
-  .blocks span:nth-child(3){clip-path:polygon(0 35%,100% 0,100% 100%,0 100%)}
-  .mark b{font-size:13px;font-weight:700;letter-spacing:.14em}
   main{flex:1;display:flex;align-items:center}
   .list{width:100%;padding:64px 0}
-  .eyebrow{font-size:12px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);margin-bottom:28px}
-  a.project{display:flex;justify-content:space-between;align-items:baseline;gap:16px;text-decoration:none;color:var(--ink);padding:26px 0;border-top:1px solid var(--line);transition:opacity .15s}
-  a.project:last-child{border-bottom:1px solid var(--line)}
-  a.project:hover{opacity:.55}
-  a.project:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
-  .project h2{font-size:clamp(26px,5vw,36px);font-weight:600;letter-spacing:-.01em}
-  .project small{font-size:13px;color:var(--mut);font-weight:500;white-space:nowrap}
-  .search{display:block;width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;padding:10px 0 12px;font:inherit;font-size:17px;color:var(--ink);margin-bottom:20px}
-  .search::placeholder{color:var(--mut)}
-  .search:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
-  .noresults{padding:26px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:15px;color:var(--mut)}
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+  .brand svg{display:block;height:24px;width:auto;fill:var(--black)}
+  .brand b{font-size:13px;font-weight:700;letter-spacing:.02em}
+  .search{display:block;width:100%;border:0;border-bottom:1px solid var(--gray-300);background:transparent;padding:12px 0;font:inherit;font-size:18px;font-weight:500;color:var(--black);appearance:none;border-radius:0}
+  .search::placeholder{color:var(--gray-500)}
+  .search:focus-visible{outline:2px solid var(--focus-ring);outline-offset:4px}
+  .kicker{display:flex;align-items:center;gap:10px;margin:48px 0 8px}
+  .kicker .dot{width:8px;height:8px;background:var(--accent)}
+  .kicker .label{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-500)}
+  a.project{display:flex;justify-content:space-between;align-items:baseline;gap:16px;text-decoration:none;color:var(--black);padding:26px 0;border-top:1px solid var(--gray-300);transition:padding-left var(--dur-base) var(--ease-out)}
+  a.project:last-of-type{border-bottom:1px solid var(--gray-300)}
+  a.project:hover{padding-left:24px}
+  a.project:hover .arr{transform:translateX(8px);color:var(--accent)}
+  a.project:focus-visible{outline:2px solid var(--focus-ring);outline-offset:4px}
+  .project h2{font-size:clamp(28px,5vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.12}
+  .project .meta{display:flex;align-items:baseline;gap:16px}
+  .project small{font-size:13px;color:var(--gray-500);font-weight:500;white-space:nowrap}
+  .project .arr{font-size:18px;color:var(--gray-500);transition:transform var(--dur-base) var(--ease-out),color var(--dur-fast) var(--ease-out)}
+  .noresults{padding:26px 0;border-top:1px solid var(--gray-300);border-bottom:1px solid var(--gray-300);font-size:15px;color:var(--gray-500)}
   .noresults[hidden]{display:none}
-  footer{padding:32px 0 40px;font-size:12px;color:var(--mut)}
+  footer{padding:32px 0 40px;font-size:12px;color:var(--gray-500)}
   @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-  <header class="wrap">
-    <div class="mark" aria-label="Webkit.Studio">
-      <div class="blocks" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-      <b>WEBKIT.STUDIO</b>
-    </div>
-  </header>
   <main class="wrap">
     <div class="list">
-      <p class="eyebrow">Pracovní návrhy</p>
+      <div class="brand" aria-label="Webkit.Studio">
+        <svg viewBox="0 0 432 108" aria-hidden="true" focusable="false"><path d="M0 0H108V108H0Z"></path><path d="M108 0C108 59.65 156.35 108 216 108L216 0Z"></path><path d="M216 0C216 59.65 264.35 108 324 108L324 0Z"></path><path d="M324 0C324 59.65 372.35 108 432 108L432 0Z"></path></svg>
+        <b>WEBKIT.STUDIO</b>
+      </div>
       <input class="search" id="search" type="text" placeholder="Hledat klienta…" aria-label="Hledat klienta" autocomplete="off">
+      <div class="kicker"><span class="dot" aria-hidden="true"></span><span class="label">Pracovní návrhy</span></div>
       <a class="project" href="/arbosis/">
         <h2>Arbosis</h2>
-        <small>jednostránkový web</small>
+        <span class="meta"><small>jednostránkový web</small><span class="arr" aria-hidden="true">→</span></span>
       </a>
       <p class="noresults" id="noresults" hidden>Nic nenalezeno.</p>
     </div>
