@@ -69,6 +69,8 @@
     '.wsg-co{display:inline-flex;align-items:center;gap:var(--g-space-3);white-space:nowrap}',
     '.wsg-x{font-size:13px;font-weight:700;color:var(--g-accent)}',
     '.wsg-cname{font-size:13px;font-weight:700;letter-spacing:0.02em;text-transform:uppercase}',
+    '.wsg-brand.wsg-stacked{row-gap:var(--g-space-4)}',
+    '.wsg-brand.wsg-stacked .wsg-symbol{flex-basis:100%;height:40px}',
     '.wsg-form{display:flex;gap:var(--g-space-2);flex-wrap:wrap}',
     '.wsg-input{flex:1;min-width:180px;height:48px;padding:0 var(--g-space-4);',
     'border:var(--g-border-w) solid var(--g-gray-300);border-radius:0;background:var(--g-white);',
@@ -100,7 +102,7 @@
 
   /* Symbol: 4 bloky – čtverec (tečka) + 3 čtvrtkruhy (W), viz assets/logo/symbol-row.svg. */
   var SYMBOL =
-    '<svg class="wsg-symbol" viewBox="0 0 432 108" aria-hidden="true" focusable="false">' +
+    '<svg class="wsg-symbol" viewBox="0 0 432 108" preserveAspectRatio="xMinYMid meet" aria-hidden="true" focusable="false">' +
     '<path d="M0 0H108V108H0Z"></path>' +
     '<path d="M108 0C108 59.65 156.35 108 216 108L216 0Z"></path>' +
     '<path d="M216 0C216 59.65 264.35 108 324 108L324 0Z"></path>' +
@@ -146,6 +148,22 @@
     var input = overlay.querySelector('.wsg-input');
     var err = overlay.querySelector('.wsg-err');
     input.focus();
+
+    /* Logo ma jen dva stavy: vse na jednom radku, nebo symbol nad celym
+       textovym radkem – zadny mezistav. */
+    var brand = overlay.querySelector('.wsg-brand');
+    function fitBrand() {
+      brand.classList.remove('wsg-stacked');
+      var need = 0;
+      for (var i = 0; i < brand.children.length; i++) {
+        need += brand.children[i].getBoundingClientRect().width;
+      }
+      need += 12 * (brand.children.length - 1);
+      if (need > brand.parentNode.clientWidth + 1) brand.classList.add('wsg-stacked');
+    }
+    window.addEventListener('resize', fitBrand);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBrand);
+    fitBrand();
 
     function unlock() {
       try { sessionStorage.setItem(KEY, '1'); } catch (e) { /* neuloží se – odemčeno jen pro tuto stránku */ }

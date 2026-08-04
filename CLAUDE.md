@@ -38,9 +38,11 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
    a štítek „v1.0".
 5. **Co-brand:** „WEBKIT.STUDIO x NÁZEV" – `x` je akcentní a `aria-hidden`,
    název klienta uppercase přes CSS (v markupu normálně). Není součástí loga
-   (vlastní `<span>`), ale musí tak vypadat. Na úzkém displeji se „x NÁZEV"
-   láme jako celek na nový řádek; v liště prohlížeče se sbaluje jen na název
-   klienta.
+   (vlastní `<span>`), ale musí tak vypadat. Logo má **jen dva stavy, žádný
+   mezistav**: buď vše na jednom řádku, nebo symbol (40 px) nad celým
+   textovým řádkem „WEBKIT.STUDIO x NÁZEV" – přepíná malý skript podle
+   skutečné šířky (třídy `.measure`/`.stacked`). V liště prohlížeče se
+   co-brand sbaluje jen na název klienta.
 6. **Commity:** krátká česká zpráva bez diakritiky. Push do `main` spouští
    Pages build (~1 min). CDN cache 10 min – po nasazení hard refresh.
 
