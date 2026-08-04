@@ -80,6 +80,13 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
   projekt+verzi, pin se kreslí jen v aktuálním pohledu; klik na komentář
   z druhého pohledu přechází na druhý viewer s `#c=<id>`. Mazání
   neexistuje, vlákna se uklízí přes „Vyřešeno".
+- Fáze B: filtry stav/zobrazení/autor (kombinují se, localStorage
+  `draft-filters-<projekt>`, platí i pro piny; počítadlo v liště je vždy
+  počet nevyřešených), nepřečtené (localStorage `seen-<projekt>-<verze>`,
+  tečka u jména + „(N · M nových)" v liště, nuluje se otevřením panelu),
+  trvalé odkazy `#c=<id>` + „Kopírovat odkaz" u komentáře, „Export" do
+  Markdownu (jen role admin). Na klientském indexu štítek počtu
+  komentářů u verze (`[data-vc="v<N>"]` + inline skript).
 
 ## Postupy
 
