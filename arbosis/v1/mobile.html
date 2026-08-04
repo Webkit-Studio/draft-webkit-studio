@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Arbosis wireframe v1 – mobil | Webkit.Studio</title>
-<script src="/assets/gate.js" data-client="arbosis"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/gate.js" data-client="arbosis" data-client-name="Arbosis"></script>
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon.png">
 <link rel="apple-touch-icon" href="/assets/favicon.png">
@@ -32,14 +33,21 @@
   .switch a[aria-current="true"]{background:var(--white);color:var(--black)}
   .switch a[aria-current="true"]:hover{color:var(--black)}
   .switch a:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+  .bar .who{display:flex;align-items:baseline;gap:12px;font-size:12.5px;font-weight:600;white-space:nowrap}
+  .bar .who[hidden]{display:none}
+  .bar .who b{color:var(--white);font-weight:600}
+  .bar .who a{color:var(--inverse-mut);text-decoration:none;transition:color var(--dur-fast) var(--ease-out)}
+  .bar .who a:hover{color:var(--accent)}
+  .bar .who a:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
   .stage{display:flex;justify-content:center;padding:28px 20px 56px}
   .shell{width:375px}
   .frame{width:375px;background:var(--white);border:1px solid var(--gray-300);font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#333}
   .frame a{text-decoration:none}
   #stickyCta{opacity:0;pointer-events:none;transition:opacity .2s}
   #stickyCta.on{opacity:1;pointer-events:auto}
-  @media (max-width:760px){.bar .title small{display:none}}
+  @media (max-width:760px){.bar .title small{display:none}.bar .who b{display:none}}
   @media (max-width:560px){.bar .title .tw,.bar .title .tx{display:none}}
+  @media (max-width:460px){.bar{gap:12px;padding:0 14px}.bar .title{display:none}}
 </style>
 </head>
 <body>
@@ -50,6 +58,8 @@
       <a href="/arbosis/v1/desktop.html">Počítač</a>
       <a href="/arbosis/v1/mobile.html" aria-current="true">Mobil</a>
     </nav>
+    <button class="cbtn" type="button" data-comments-toggle hidden><span class="cbtn-t">Komentáře</span><span class="cbtn-n">(0)</span></button>
+    <span class="who" data-auth hidden><b data-auth-name></b><a href="#" data-auth-signout>Odhlásit</a></span>
   </div>
   <div class="stage">
     <div class="shell" id="shell">
@@ -300,5 +310,6 @@
       tick();
     })();
   </script>
+  <script src="/assets/comments.js" data-project="arbosis" data-version="v1" data-view="mobile"></script>
 </body>
 </html>

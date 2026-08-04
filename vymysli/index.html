@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Vymysli.cz – návrhy | Webkit.Studio</title>
-<script src="/assets/gate.js" data-client="vymysli"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/gate.js" data-client="vymysli" data-client-name="Vymysli.cz"></script>
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon.png">
 <link rel="apple-touch-icon" href="/assets/favicon.png">
@@ -36,6 +37,14 @@
   .brand.stacked{row-gap:16px}
   .brand.stacked svg{flex-basis:100%;height:40px}
   a.brand:focus-visible{outline:2px solid var(--focus-ring);outline-offset:4px}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px 24px;flex-wrap:wrap;margin-bottom:32px}
+  .top .brand{margin-bottom:0}
+  .who{display:inline-flex;align-items:baseline;gap:14px;font-size:13px;white-space:nowrap}
+  .who[hidden]{display:none}
+  .who b{font-weight:600}
+  .who a{color:var(--gray-500);text-decoration:none;font-weight:600;transition:color var(--dur-fast) var(--ease-out)}
+  .who a:hover{color:var(--accent)}
+  .who a:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
   h1{font-size:clamp(28px,6vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.12;margin-bottom:40px}
   .empty{border-top:1px solid var(--gray-300);border-bottom:1px solid var(--gray-300);padding:26px 0;font-size:15px;color:var(--gray-500)}
   @media (prefers-reduced-motion: reduce){*{transition:none!important}}
@@ -44,11 +53,14 @@
 <body>
   <main class="wrap">
     <div class="list">
+      <div class="top">
       <a class="brand" href="/" aria-label="Webkit.Studio – přehled projektů">
         <svg viewBox="0 0 432 108" preserveAspectRatio="xMinYMid meet" aria-hidden="true" focusable="false"><path d="M0 0H108V108H0Z"></path><path d="M108 0C108 59.65 156.35 108 216 108L216 0Z"></path><path d="M216 0C216 59.65 264.35 108 324 108L324 0Z"></path><path d="M324 0C324 59.65 372.35 108 432 108L432 0Z"></path></svg>
         <b>WEBKIT.STUDIO</b>
         <span class="co"><span class="x" aria-hidden="true">x</span><span class="cname">Vymysli.cz</span></span>
       </a>
+      <div class="who" data-auth hidden><b data-auth-name></b><a href="#" data-auth-signout>Odhlásit</a></div>
+      </div>
       <h1>Vymysli.cz</h1>
 
       <p class="empty">Zatím žádný návrh.</p>

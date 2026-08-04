@@ -16,7 +16,10 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
   Vzor: `arbosis/v1/`.
 - `/<slug>/v<N>/wireframe.html` – surový export z Claude Design. Archiv,
   **nikdy needitovat**.
-- `/assets/gate.js` – sdílená heslová brána, konfigurace `CLIENTS` na začátku.
+- `/assets/config.js` – Project URL + anon public klíč Supabase (jediná
+  konfigurace; service_role klíč do repa nikdy).
+- `/assets/gate.js` – sdílené přihlášení přes Supabase Auth (e-mail + heslo).
+- `/assets/comments.js` – komentáře s piny ve viewerech.
 - `/assets/favicon.svg|png` – favicon (čtvercový symbol na černé).
 - `/design/webkit/` – handoff design systému. **Zdroj pravdy pro veškerý styl.**
 
@@ -48,31 +51,53 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
 
 ## Brána (gate.js)
 
-- Aktivace: `<script src="/assets/gate.js" data-client="<slug>"></script>`
-  v `<head>` hned za `<title>` – musí být synchronní, skrývá obsah před
-  prvním vykreslením.
-- Ověření proti SHA-256 hashi v `CLIENTS`. **Plaintext hesla do repa nikdy**
-  (repo je veřejné) – drží je Lukáš mimo repo. Návod na vygenerování hashe je
-  v komentáři gate.js.
-- Odemčení drží `sessionStorage["gate-<slug>"]` – platí pro záložku, nová
-  záložka se ptá znovu.
+- Aktivace v `<head>` hned za `<title>`, synchronně (skrývá obsah před
+  prvním vykreslením):
+  `<script src="/assets/config.js"></script>`
+  `<script src="/assets/gate.js" data-client="<slug>" data-client-name="<Název>"></script>`
+- Přihlášení e-mail + heslo proti Supabase Auth (čistý REST:
+  `/auth/v1/token?grant_type=password`, `/auth/v1/user`). Session drží
+  `localStorage["draft-session"]` (access + refresh token), při 401 se
+  zkusí refresh. Registrace neexistuje, účty zakládá Lukáš v Supabase
+  (Dashboard → Authentication → Users). **Hesla ani service_role klíč do
+  repa nikdy** (repo je veřejné).
+- Přístup per projekt přes `user_metadata`: `role: "admin"` smí všude,
+  jinak pole `projects` musí obsahovat slug z `data-client`. Bez přístupu
+  se místo obsahu ukáže „Nemáte přístup k tomuto projektu."
+- Po odemčení gate naplní `[data-auth-name]` (jméno „Lukáš S."), odkryje
+  `[data-auth]`, naváže `[data-auth-signout]` a vystaví `window.draftUser`
+  + `window.draftAuth.fetch` (autorizovaný fetch pro REST) + událost
+  `draft:user` pro comments.js.
+
+## Komentáře (comments.js)
+
+- Aktivace ve viewerech (před `</body>`):
+  `<script src="/assets/comments.js" data-project="<slug>" data-version="v<N>" data-view="desktop|mobile"></script>`
+  Lišta vieweru musí mít `<button class="cbtn" data-comments-toggle hidden>`.
+- Data v Supabase tabulce `comments` (REST `/rest/v1/comments`, RLS podle
+  `user_metadata`). Pozice pinu = `data-screen-label` sekce plátna +
+  relativní x/y (0–1) uvnitř sekce. Panel ukazuje oba pohledy pro
+  projekt+verzi, pin se kreslí jen v aktuálním pohledu; klik na komentář
+  z druhého pohledu přechází na druhý viewer s `#c=<id>`. Mazání
+  neexistuje, vlákna se uklízí přes „Vyřešeno".
 
 ## Postupy
 
 ### Nový klient
-1. Vygenerovat heslo (slovo bez diakritiky + 2 číslice), spočítat hash,
-   přidat záznam do `CLIENTS` v `gate.js` (slug, name, hash).
+1. V Supabase založit/upravit uživatele klienta: heslo drží Lukáš mimo
+   repo, `user_metadata` = `first_name`, `last_name` a `projects`
+   (pole slugů, doplnit nový slug).
 2. Zkopírovat `anse/index.html` → `/<slug>/index.html`; upravit `<title>`,
-   `data-client`, `.cname` a `<h1>`.
+   `data-client`, `data-client-name`, `.cname` a `<h1>`.
 3. Přidat řádek na rozcestník (abecedně): jen název + šipka.
-4. Heslo předat Lukášovi v odpovědi, nikam ho neukládat.
 
 ### Nová verze návrhu
 1. Založit `/<slug>/v<N>/` podle `arbosis/v1/`.
 2. Z exportu Claude Design vyjmout desktopové a mobilní plátno a vložit
    nativně do `desktop.html` / `mobile.html`: bez postranních anotací a fold
    značek, kotvy funkční, na mobilu sticky CTA. Surový export uložit jako
-   `wireframe.html`. V hlavičkách noindex + správný `<title>` + gate.
+   `wireframe.html`. V hlavičkách noindex + správný `<title>` + config.js
+   + gate; v liště tlačítko komentářů, před `</body>` comments.js.
 3. Na stránce klienta přidat/aktualizovat řádek verze: název verze, datum
    nahrání, štítek `vX.Y`, tlačítka Počítač (primární) / Mobil (ghost).
 
