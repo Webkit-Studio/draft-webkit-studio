@@ -1,0 +1,44 @@
+/* Webkit.Studio — typography tokens
+   One family: Urbanist. Hierarchy through weight + size, not through extra fonts.
+   Display is heavy and tight; body is regular and calm; labels are uppercase
+   with wide tracking. Mono stack is for technical meta only (invoice numbers,
+   file names) — never for headings or body. */
+:root {
+  --font-sans: 'Urbanist', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, monospace; /* @kind font */
+
+  /* Weights */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-heavy: 800;
+
+  /* Size scale (px) */
+  --text-xs: 12px;   /* meta, tags */
+  --text-sm: 14px;   /* secondary UI */
+  --text-base: 16px; /* body */
+  --text-lg: 18px;   /* lead body */
+  --text-xl: 22px;   /* small headings */
+  --display-sm: 28px;
+  --display-md: 40px;
+  --display-lg: 56px;
+  --display-xl: 80px;
+  --display-2xl: 112px;
+
+  /* Line heights */
+  --leading-display: 1.02;
+  --leading-heading: 1.12;
+  --leading-tight: 1.3;
+  --leading-body: 1.55;
+
+  /* Tracking */
+  --tracking-display: -0.03em;
+  --tracking-heading: -0.02em;
+  --tracking-body: 0;
+  --tracking-caps: 0.08em; /* uppercase kickers, labels, tags */
+
+  /* Kicker / label */
+  --label-size: 12px;
+  --label-weight: 600;
+}

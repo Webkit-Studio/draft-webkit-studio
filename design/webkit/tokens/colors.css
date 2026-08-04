@@ -1,0 +1,37 @@
+/* Webkit.Studio — color tokens
+   Monochrome system: black, white, three grays. One accent — FINAL: signal
+   orange #ff4d00 — used deliberately (CTA, emphasis, interactive states),
+   never as a field or decoration. */
+:root {
+  /* Base */
+  --black: #000000;
+  --white: #ffffff;
+  --gray-100: #f4f4f4; /* raised light surface */
+  --gray-300: #e2e2e2; /* hairlines */
+  --gray-500: #6f6f6f; /* muted text — AA on white */
+
+  /* Accent — FINAL: Signal Orange */
+  --accent: #ff4d00;
+  --accent-ink: #000000; /* text/icon color on accent fills */
+
+  /* Semantic — surfaces */
+  --surface-page: var(--white);
+  --surface-raised: var(--gray-100);
+  --surface-inverse: var(--black);
+
+  /* Semantic — text */
+  --text-primary: var(--black);
+  --text-muted: var(--gray-500);
+  --text-inverse: var(--white);
+  --text-inverse-muted: rgba(255, 255, 255, 0.62);
+
+  /* Semantic — lines */
+  --border-line: var(--gray-300);
+  --border-strong: var(--black);
+  --border-inverse: rgba(255, 255, 255, 0.24);
+
+  /* Semantic — interaction */
+  --interactive: var(--black);
+  --interactive-hover: var(--accent);
+  --focus-ring: var(--accent);
+}

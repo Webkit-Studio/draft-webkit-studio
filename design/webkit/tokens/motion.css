@@ -1,0 +1,12 @@
+/* Webkit.Studio — motion tokens
+   Motion is mechanical and precise: blocks translate and snap into place.
+   No bounce, no elastic, no fades-for-everything. Signature move: the symbol
+   blocks re-assembling (row <-> square). */
+:root {
+  --ease-snap: cubic-bezier(0.7, 0, 0.15, 1); /* @kind other */ /* signature: fast in, hard settle */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1); /* @kind other */ /* UI state changes */
+  --duration-fast: 120ms; /* @kind other */ /* hovers, presses */
+  --duration-base: 200ms; /* @kind other */ /* most UI transitions */
+  --duration-slow: 450ms; /* @kind other */ /* block assembly, layout shifts */
+  --stagger: 60ms; /* @kind other */ /* per-block delay in assembly sequences */
+}

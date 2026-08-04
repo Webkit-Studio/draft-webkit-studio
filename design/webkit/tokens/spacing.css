@@ -1,0 +1,38 @@
+/* Webkit.Studio — spacing, layout, corners, lines
+   8px base grid. Corners are SQUARE (radius 0) everywhere — the only curve in
+   the system is the brand quarter-circle (one corner at 100%), used sparingly
+   on media blocks and feature surfaces. No shadows, ever: depth = hairlines
+   and surface swaps. */
+:root {
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+  --space-11: 192px;
+
+  /* Layout */
+  --container-max: 1200px;
+  --gutter: 32px;
+  --grid-columns: 12; /* @kind other */
+  --section-gap: var(--space-10);
+
+  /* Corners */
+  --radius-0: 0px;       /* the default, everywhere */
+  --radius-quarter: 100%; /* brand quarter-circle — ONE corner only */
+
+  /* Lines */
+  --border-w: 1px;
+  --border-w-strong: 2px;
+
+  /* Documents (A4 print) */
+  --doc-margin: 18mm;
+  --doc-body-size: 10.5pt;
+  --doc-meta-size: 8.5pt;
+}

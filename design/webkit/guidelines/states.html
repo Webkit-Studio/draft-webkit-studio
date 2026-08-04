@@ -1,0 +1,25 @@
+<!-- @dsCard group="Motion" viewport="700x180" name="Interaktivní stavy" subtitle="Hover: akcent/inverze · Press: 1px dolů · Focus: akcentní ring" -->
+<!DOCTYPE html>
+<html lang="cs">
+<head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  .demo-btn { background: var(--black); color: var(--white); border: 0; font: inherit; font-weight: var(--weight-bold); font-size: 14px; padding: 11px 20px; cursor: pointer; transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out); }
+  .demo-btn:hover { background: var(--accent); color: var(--accent-ink); }
+  .demo-btn:active { transform: translateY(1px); }
+  .demo-outline { background: transparent; color: var(--black); border: 1px solid var(--black); }
+  .demo-outline:hover { background: var(--black); color: var(--white); }
+  .demo-focus { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+</style>
+</head>
+<body style="padding: 24px 32px;">
+  <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+    <button class="demo-btn" type="button">Hover → akcent</button>
+    <button class="demo-btn demo-outline" type="button">Hover → inverze</button>
+    <button class="demo-btn demo-focus" type="button">Focus ring</button>
+    <a href="#" style="font-size: 14px; font-weight: var(--weight-medium);">Odkaz → akcent</a>
+  </div>
+  <div style="margin-top: 18px; border-top: 1px solid var(--border-line); padding-top: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">
+    hover 120ms · press translateY(1px), žádné zmenšování · focus 2px accent, offset 2 · disabled: 40% opacity
+  </div>
+</body>
+</html>

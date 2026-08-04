@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Homepage V4 — Relume" description="Homepage v2 přestavěná 1:1 na strukturu Relume + Client-First (padding-global → container-large → padding-section) s data-relume anotacemi pro build ve Webflow" -->
+<helmet>
+<script src="./ds-base.js"></script>
+<style>
+  body { margin: 0; background: #ffffff; color: #000000; font-family: 'Urbanist', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #000000; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: #ff4d00; }
+  ::selection { background: #ff4d00; color: #000000; }
+  @keyframes wkMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  [data-marquee]:hover [data-track] { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) { [data-track] { animation: none !important; } }
+  [data-claim]:hover [data-dot] { transform: translateY(-0.1em); }
+  [data-row]:hover { padding-left: 24px !important; }
+  [data-row]:hover [data-num] { color: #ff4d00 !important; }
+  [data-row]:hover [data-arrow] { transform: translateX(8px); color: #ff4d00; }
+  [data-mini]:hover { border-color: #000000 !important; }
+  [data-mini]:hover [data-q] { transform: scale(1); }
+  [data-case]:hover { border-top-color: #ff4d00 !important; }
+  a:hover [data-ar], button:hover [data-ar] { transform: rotate(-45deg); }
+  [data-step]:hover { padding-left: 12px !important; }
+  [data-step]:hover [data-num] { color: #ff4d00 !important; }
+  [data-letter]:hover [data-stamp] { transform: rotate(90deg); }
+  [data-ph] { cursor: text; }
+  [data-ph]:empty::before { content: attr(data-ph); color: #b3b3b3; }
+  [data-ph]:hover { background: #f4f4f4; }
+  [data-ph]:focus { border-color: #ff4d00 !important; background: #ffffff; }
+  [data-case] { cursor: none; }
+  @media (hover: hover) { [data-hero] { cursor: pointer; } [data-hero] h1, [data-hero] p { cursor: auto; } }
+</style>
+</helmet>
+
+<div id="top" class="page-wrapper" style="background: #ffffff; color: #000000; font-family: 'Urbanist', system-ui, sans-serif;">
+
+  <span ref="{{ progressRef }}" aria-hidden="true" style="position: fixed; top: 0; left: 0; height: 3px; width: 0; background: #ff4d00; z-index: 60;"></span>
+
+  <header ref="{{ headerRef }}" class="navbar_component" data-relume="Navbar 1" data-screen-label="Header" style="position: static; top: 0; z-index: 40; background: #ffffff; border-bottom: 1px solid #e2e2e2;">
+    <div class="padding-global" style="padding-left: clamp(20px, 4vw, 32px); padding-right: clamp(20px, 4vw, 32px);">
+      <div class="container-large" style="max-width: 1200px; margin: 0 auto;">
+        <div class="navbar_content" style="min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+          <a href="#top" aria-label="Webkit.Studio" class="navbar_logo-link" style="display: inline-flex; align-items: center; gap: 12px; text-decoration: none; padding: 14px 0;">
+            <svg viewBox="0 0 432 108" style="height: 22px; width: 88px;" aria-hidden="true"><path d="M0 0H108V108H0Z" fill="#000000"></path><path d="M108 0C108 59.65 156.35 108 216 108L216 0Z" fill="#000000"></path><path d="M216 0C216 59.65 264.35 108 324 108L324 0Z" fill="#000000"></path><path d="M324 0C324 59.65 372.35 108 432 108L432 0Z" fill="#000000"></path></svg>
+            <span style="font-weight: 700; letter-spacing: 0.02em; font-size: 20px; line-height: 1; color: #000000;">WEBKIT.STUDIO</span>
+          </a>
+          <nav class="navbar_menu" style="display: flex; align-items: center; gap: 28px; flex-wrap: wrap;">
+            <a href="#stavime" class="navbar_link" style="font-size: 15px; font-weight: 500; color: #000000; text-decoration: none; padding: 6px 2px; transition: color 120ms;" style-hover="color: #ff4d00;">Co stavíme</a>
+            <a href="#cases" class="navbar_link" style="font-size: 15px; font-weight: 500; color: #000000; text-decoration: none; padding: 6px 2px; transition: color 120ms;" style-hover="color: #ff4d00;">Práce</a>
+            <a href="#zaciname" class="navbar_link" style="font-size: 15px; font-weight: 500; color: #000000; text-decoration: none; padding: 6px 2px; transition: color 120ms;" style-hover="color: #ff4d00;">Jak začínáme</a>
+            <a href="#kontakt" class="button" style="display: inline-flex; align-items: center; gap: 8px; background: #ff4d00; color: #000000; font-weight: 700; font-size: 14px; padding: 10px 18px; text-decoration: none; transition: background 120ms, color 120ms;" style-hover="background: #000000; color: #ffffff;" style-active="transform: translateY(1px);">Napište nám</a>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section ref="{{ heroRef }}" data-hero="1" class="section_home-header" data-relume="Header 62 — customized (cursor grid + physics = custom code embed)" data-screen-label="Hero" style="background: #ffffff; color: #000000; position: relative; overflow: hidden;">
+    <span ref="{{ followerRef }}" aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 32px; height: 32px; background: #f4f4f4; opacity: 0; pointer-events: none; transition: transform 200ms cubic-bezier(0.7, 0, 0.15, 1), opacity 300ms, border-radius 200ms cubic-bezier(0.7, 0, 0.15, 1), background 200ms;"></span>
+    <span ref="{{ hintRef }}" aria-hidden="true" style="position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; z-index: 6; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10px; color: #6f6f6f; background: #ffffff; border: 1px solid #e2e2e2; padding: 3px 7px; white-space: nowrap; transition: opacity 200ms;">A co postavíte vy?</span>
+    <div class="padding-global" style="padding-left: clamp(20px, 4vw, 32px); padding-right: clamp(20px, 4vw, 32px);">
+      <div class="container-large" style="max-width: 1200px; margin: 0 auto;">
+        <div class="padding-section-large" data-reveal="1" style="padding-top: clamp(64px, 9vw, 104px); padding-bottom: clamp(56px, 8vw, 88px); display: flex; gap: 64px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; position: relative; z-index: 1;">
+          <div class="home-header_content" style="display: flex; flex-direction: column; gap: 32px; max-width: 860px;">
+            <sc-if value="{{ claimVysledek }}" hint-placeholder-val="{{ true }}">
+              <h1 data-claim="1" class="heading-style-h1" style="margin: 0; font-size: clamp(48px, 8.5vw, 120px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.02;">Výsledek, ne výstup<span data-dot="1" style="color: #ff4d00; display: inline-block; transition: transform 300ms cubic-bezier(0.7, 0, 0.15, 1);">.</span></h1>
+            </sc-if>
+            <sc-if value="{{ claimPrehlidli }}" hint-placeholder-val="{{ false }}">
+              <h1 data-claim="1" class="heading-style-h1" style="margin: 0; font-size: clamp(44px, 8vw, 112px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.02;">Najdeme, co ostatní přehlídli<span data-dot="1" style="color: #ff4d00; display: inline-block; transition: transform 300ms cubic-bezier(0.7, 0, 0.15, 1);">.</span></h1>
+            </sc-if>
+            <sc-if value="{{ claimProc }}" hint-placeholder-val="{{ false }}">
+              <h1 data-claim="1" class="heading-style-h1" style="margin: 0; font-size: clamp(44px, 8vw, 112px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.02;">Nestavíme, dokud nevíme proč<span data-dot="1" style="color: #ff4d00; display: inline-block; transition: transform 300ms cubic-bezier(0.7, 0, 0.15, 1);">.</span></h1>
+            </sc-if>
+            <p class="text-size-medium" style="margin: 0; font-size: 18px; line-height: 1.55; max-width: 620px;">Webkit.Studio — weby, vizuální identity a vedení digitálních projektů. Zjistíme, co váš projekt doopravdy potřebuje. A vedeme ho až do konce.</p>
+            <div class="button-group" style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <a href="#kontakt" class="button" style="display: inline-flex; align-items: center; gap: 10px; background: #ff4d00; color: #000000; font-weight: 700; font-size: 16px; padding: 14px 24px; text-decoration: none; transition: background 120ms, color 120ms;" style-hover="background: #000000; color: #ffffff;" style-active="transform: translateY(1px);">Napište nám <span data-ar="1" aria-hidden="true" style="display: inline-block; transition: transform 200ms cubic-bezier(0.7, 0, 0.15, 1);">→</span></a>
+              <a href="#cases" class="button is-secondary" style="display: inline-flex; align-items: center; gap: 10px; background: transparent; color: #000000; border: 1px solid #000000; font-weight: 700; font-size: 16px; padding: 13px 24px; text-decoration: none; transition: color 120ms, border-color 120ms;" style-hover="color: #ff4d00; border-color: #ff4d00;" style-active="transform: translateY(1px);">Co to znamená v praxi</a>
+            </div>
+          </div>
+          <div ref="{{ blocksWrapRef }}" data-blocks="1" onClick="{{ toggleBlocks }}" title="Klikněte si" class="home-header_visual" style="padding-bottom: 8px; cursor: pointer;">
+            <x-import component-from-global-scope="WebkitStudio_b16f7a.Blocks" form="{{ blocksForm }}" size="{{ blockSize }}" accent-dot="{{ true }}" morph-on-hover="{{ true }}" tone="black" hint-size="224px,112px"></x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div data-marquee="1" aria-hidden="true" class="section_marquee" data-relume="Logo 6 — marquee variant (custom CSS loop embed)" style="border-top: 1px solid #e2e2e2; background: #ffffff; overflow: hidden;">
+    <div data-track="1" class="marquee_track" style="display: flex; width: max-content; animation: wkMarquee 28s linear infinite;">
+      <div class="marquee_group" style="display: flex; align-items: center; gap: 48px; padding: 18px 0; padding-right: 48px;">
+        <span style="font-size: 18px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap;">najdeme, co ostatní přehlídli</span>
+        <span style="width: 10px; height: 10px; background: #ff4d00; flex-shrink: 0;"></span>
+        <span style="font-size: 18px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap;">vedeme až do konce</span>
+        <span style="width: 10px; height: 10px; background: #000000; border-bottom-left-radius: 100%; flex-shrink: 0;"></span>
+        <span style="font-size: 18px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap;">výsledek, ne výstup</span>
+        <span style="width: 10px; height: 10px; background: #ff4d00; flex-shrink: 0;"></span>
+        <span style="font-size: 18px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap;">nestavíme, dokud nevíme proč</span>
+        <span style="width: 10px; height: 10px; background: #000000; border-bottom-left-radius: 100%; flex-shrink: 0;"></span>
+      </div>
+      <div class="marquee_group" style="display: flex; align-items: center; gap: 48px; padding: 18px 0; padding-right: 48px;">
+        <span style="font-size: 18px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap;">najdeme, co ostatní přehlídli</span>
+        <span style="width: 10px; height: 10px; background: #ff4d00; flex-shrink: 0;"></span>
+        <span style="font-size: 18px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap;">vedeme až do konce</span>
+        <span style="width: 10px; height: 10px; background: #000000; border-bottom-left-radius: 100%; flex-shrink: 0;"></span>
+        <span style="font-size: 18px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap;">výsledek, ne výstup</span>
+        <span style="width: 10px; height: 10px; background: #ff4d00; flex-shrink: 0;"></span>
+        <span style="font-size: 18px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap;">nestavíme, dokud nevíme proč</span>
+        <span style="width: 10px; height: 10px; background: #000000; border-bottom-left-radius: 100%; flex-shrink: 0;"></span>
+      </div>
+    </div>
+  </div>
+
+  <section id="stavime" class="section_services" data-relume="Layout 465 — list rows + Layout 396 — mini cards" data-screen-label="Co stavíme" style="border-top: 1px solid #e2e2e2; background: #ffffff;">
+    <div class="padding-global" style="padding-left: clamp(20px, 4vw, 32px); padding-right: clamp(20px, 4vw, 32px);">
+      <div class="container-large" style="max-width: 1200px; margin: 0 auto;">
+        <div class="padding-section-large" data-reveal="1" style="padding-top: clamp(64px, 9vw, 96px); padding-bottom: clamp(64px, 9vw, 96px);">
+          <div class="section-header" style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 48px;">
+            <div class="tagline-wrapper" style="display: flex; align-items: center; gap: 10px;">
+              <span style="width: 8px; height: 8px; background: #ff4d00;"></span>
+              <span class="tagline" style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6f6f6f;">Služby</span>
+            </div>
+            <h2 class="heading-style-h2" style="margin: 0; font-size: clamp(32px, 4.5vw, 48px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05;">Co stavíme</h2>
+          </div>
+          <div class="services_list" style="border-top: 1px solid #000000; margin-bottom: 56px;">
+            <div data-row="1" class="services_item" style="display: grid; grid-template-columns: 64px minmax(150px, 1fr) minmax(200px, 1.2fr) 32px; gap: 24px; align-items: center; padding: 26px 12px; border-bottom: 1px solid #e2e2e2; transition: padding 200ms cubic-bezier(0.7, 0, 0.15, 1);">
+              <span data-num="1" class="services_number" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 13px; color: #6f6f6f; transition: color 120ms;">01</span>
+              <strong class="heading-style-h5" style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em;">Weby ve Webflow</strong>
+              <span data-dim="1" class="text-color-secondary" style="font-size: 16px; color: #6f6f6f; line-height: 1.55;">Od návrhu po launch a další rozvoj.</span>
+              <span data-arrow="1" aria-hidden="true" style="font-size: 18px; transition: transform 200ms cubic-bezier(0.7, 0, 0.15, 1), color 120ms;">→</span>
+            </div>
+            <div data-row="1" class="services_item" style="display: grid; grid-template-columns: 64px minmax(150px, 1fr) minmax(200px, 1.2fr) 32px; gap: 24px; align-items: center; padding: 26px 12px; border-bottom: 1px solid #e2e2e2; transition: padding 200ms cubic-bezier(0.7, 0, 0.15, 1);">
+              <span data-num="1" class="services_number" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 13px; color: #6f6f6f; transition: color 120ms;">02</span>
+              <strong class="heading-style-h5" style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em;">Vizuální identity</strong>
+              <span data-dim="1" class="text-color-secondary" style="font-size: 16px; color: #6f6f6f; line-height: 1.55;">Značka, pravidla, aplikace.</span>
+              <span data-arrow="1" aria-hidden="true" style="font-size: 18px; transition: transform 200ms cubic-bezier(0.7, 0, 0.15, 1), color 120ms;">→</span>
+            </div>
+            <div data-row="1" class="services_item" style="display: grid; grid-template-columns: 64px minmax(150px, 1fr) minmax(200px, 1.2fr) 32px; gap: 24px; align-items: center; padding: 26px 12px; border-bottom: 1px solid #e2e2e2; transition: padding 200ms cubic-bezier(0.7, 0, 0.15, 1);">
+              <span data-num="1" class="services_number" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 13px; color: #6f6f6f; transition: color 120ms;">03</span>
+              <strong class="heading-style-h5" style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em;">Vedení projektů</strong>
+              <span data-dim="1" class="text-color-secondary" style="font-size: 16px; color: #6f6f6f; line-height: 1.55;">Koordinace týmů a dodavatelů, když projekt přeroste jednu dodávku.</span>
+              <span data-arrow="1" aria-hidden="true" style="font-size: 18px; transition: transform 200ms cubic-bezier(0.7, 0, 0.15, 1), color 120ms;">→</span>
+            </div>
+          </div>
+          <div data-reveal="1" class="services_mini-wrapper" style="display: flex; flex-direction: column; gap: 24px;">
+            <div style="display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;">
+              <h3 class="heading-style-h5" style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em;">Nemusí to být hned velký projekt</h3>
+              <span class="text-color-secondary" style="font-size: 15px; color: #6f6f6f;">Menší zakázky děláme se stejnou péčí.</span>
+            </div>
+            <div class="services_mini-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+              <div data-mini="1" class="services_mini-card" style="border: 1px solid #e2e2e2; padding: 24px; display: flex; flex-direction: column; gap: 10px; transition: border-color 120ms; position: relative; overflow: hidden;">
+                <span data-q="1" aria-hidden="true" style="position: absolute; right: 0; bottom: 0; width: 44px; height: 44px; background: #ff4d00; border-bottom-left-radius: 0; border-top-left-radius: 100%; transform: scale(0); transform-origin: 100% 100%; transition: transform 300ms cubic-bezier(0.7, 0, 0.15, 1);"></span>
+                <strong style="font-size: 17px; font-weight: 700; letter-spacing: -0.01em;">Jednostránkový web</strong>
+                <span style="font-size: 14px; color: #6f6f6f; line-height: 1.55;">Landing page pro kampaň, produkt nebo akci. Rychle a pořádně.</span>
+              </div>
+              <div data-mini="1" class="services_mini-card" style="border: 1px solid #e2e2e2; padding: 24px; display: flex; flex-direction: column; gap: 10px; transition: border-color 120ms; position: relative; overflow: hidden;">
+                <span data-q="1" aria-hidden="true" style="position: absolute; right: 0; bottom: 0; width: 44px; height: 44px; background: #ff4d00; border-top-left-radius: 100%; transform: scale(0); transform-origin: 100% 100%; transition: transform 300ms cubic-bezier(0.7, 0, 0.15, 1);"></span>
+                <strong style="font-size: 17px; font-weight: 700; letter-spacing: -0.01em;">Rozvoj existujícího webu</strong>
+                <span style="font-size: 14px; color: #6f6f6f; line-height: 1.55;">Nové sekce, úpravy a zlepšování — bez redesignu od nuly.</span>
+              </div>
+              <div data-mini="1" class="services_mini-card" style="border: 1px solid #e2e2e2; padding: 24px; display: flex; flex-direction: column; gap: 10px; transition: border-color 120ms; position: relative; overflow: hidden;">
+                <span data-q="1" aria-hidden="true" style="position: absolute; right: 0; bottom: 0; width: 44px; height: 44px; background: #ff4d00; border-top-left-radius: 100%; transform: scale(0); transform-origin: 100% 100%; transition: transform 300ms cubic-bezier(0.7, 0, 0.15, 1);"></span>
+                <strong style="font-size: 17px; font-weight: 700; letter-spacing: -0.01em;">Logo a základ značky</strong>
+                <span style="font-size: 14px; color: #6f6f6f; line-height: 1.55;">Když celá identita zatím není potřeba. S prostorem růst.</span>
+              </div>
+              <div data-mini="1" class="services_mini-card" style="border: 1px solid #e2e2e2; padding: 24px; display: flex; flex-direction: column; gap: 10px; transition: border-color 120ms; position: relative; overflow: hidden;">
+                <span data-q="1" aria-hidden="true" style="position: absolute; right: 0; bottom: 0; width: 44px; height: 44px; background: #ff4d00; border-top-left-radius: 100%; transform: scale(0); transform-origin: 100% 100%; transition: transform 300ms cubic-bezier(0.7, 0, 0.15, 1);"></span>
+                <strong style="font-size: 17px; font-weight: 700; letter-spacing: -0.01em;">Druhý názor</strong>
+                <span style="font-size: 14px; color: #6f6f6f; line-height: 1.55;">Projdeme s vámi zadání nebo nabídky dodavatelů, než se rozhodnete.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cases" class="section_cases background-color-secondary" data-relume="Blog 67 — card grid (hover preview = custom code embed)" data-screen-label="Cases" style="border-top: 1px solid #e2e2e2; background: #f4f4f4;">
+    <div class="padding-global" style="padding-left: clamp(20px, 4vw, 32px); padding-right: clamp(20px, 4vw, 32px);">
+      <div class="container-large" style="max-width: 1200px; margin: 0 auto;">
+        <div class="padding-section-large" data-reveal="1" style="padding-top: clamp(64px, 9vw, 96px); padding-bottom: clamp(64px, 9vw, 96px);">
+          <div class="section-header" style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 48px;">
+            <div class="tagline-wrapper" style="display: flex; align-items: center; gap: 10px;">
+              <span style="width: 8px; height: 8px; background: #ff4d00;"></span>
+              <span class="tagline" style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6f6f6f;">Vybraná práce</span>
+            </div>
+            <h2 class="heading-style-h2" style="margin: 0; font-size: clamp(32px, 4.5vw, 48px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05;">Co to znamená v praxi</h2>
+          </div>
+          <div ref="{{ casesGridRef }}" class="cases_grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; position: relative;">
+            <div ref="{{ previewRef }}" aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 260px; height: 180px; opacity: 0; pointer-events: none; z-index: 50; border: 1px solid #000000; background: repeating-linear-gradient(45deg, #f4f4f4 0, #f4f4f4 10px, #ffffff 10px, #ffffff 20px); display: flex; align-items: center; justify-content: center; transition: opacity 200ms;">
+              <span ref="{{ previewLabelRef }}" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; color: #6f6f6f; background: #ffffff; padding: 4px 8px; border: 1px solid #e2e2e2;">ukázka projektu</span>
+            </div>
+            <article data-case="1" class="cases_item" style="background: #ffffff; border-top: 2px solid #000000; padding: 28px; display: flex; flex-direction: column; gap: 14px; transition: border-color 200ms, padding 200ms cubic-bezier(0.7, 0, 0.15, 1);">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                <h3 class="heading-style-h4" style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em;">Arbosis</h3>
+                <span data-tag="1" class="tag" style="border: 1px solid #e2e2e2; padding: 4px 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6f6f6f; transition: border-color 200ms, color 200ms;">Vizuální identita</span>
+              </div>
+              <div style="font-size: 18px; font-weight: 600;">Poptali logo.</div>
+              <p data-dim="1" class="text-color-secondary" style="margin: 0; font-size: 16px; line-height: 1.55; color: #6f6f6f; transition: color 200ms;">Samotné logo by v B2B neobstálo. Vznikla celá identita — v rozpočtu, který firma unesla. Dnes ji hrdě nosí na autech, oblečení i fakturách. Vstup mezi B2B partnery proběhl hladce.</p>
+            </article>
+            <article data-case="1" class="cases_item" style="background: #ffffff; border-top: 2px solid #000000; padding: 28px; display: flex; flex-direction: column; gap: 14px; transition: border-color 200ms, padding 200ms cubic-bezier(0.7, 0, 0.15, 1);">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                <h3 class="heading-style-h4" style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em;">ELDR</h3>
+                <span data-tag="1" class="tag" style="border: 1px solid #e2e2e2; padding: 4px 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6f6f6f; transition: border-color 200ms, color 200ms;">Web + rozvoj</span>
+              </div>
+              <div style="font-size: 18px; font-weight: 600;">Poptali redesign webu.</div>
+              <p data-dim="1" class="text-color-secondary" style="margin: 0; font-size: 16px; line-height: 1.55; color: #6f6f6f; transition: color 200ms;">Z jedné zakázky vyrostla dlouhodobá spolupráce. Web se vyvíjí podle obchodních cílů a otevřel cestu na německý trh. A když zadání nedává smysl, řekneme to — předčasný vstup do 3D tisku se zastavil dřív, než stál peníze.</p>
+            </article>
+            <article data-case="1" class="cases_item" style="background: #ffffff; border-top: 2px solid #000000; padding: 28px; display: flex; flex-direction: column; gap: 14px; transition: border-color 200ms, padding 200ms cubic-bezier(0.7, 0, 0.15, 1);">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                <h3 class="heading-style-h4" style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em;">CRR</h3>
+                <span data-tag="1" class="tag" style="border: 1px solid #e2e2e2; padding: 4px 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6f6f6f; transition: border-color 200ms, color 200ms;">Vedení projektu</span>
+              </div>
+              <div style="font-size: 18px; font-weight: 600;">Formálně nový vizuální styl.</div>
+              <p data-dim="1" class="text-color-secondary" style="margin: 0; font-size: 16px; line-height: 1.55; color: #6f6f6f; transition: color 200ms;">Reálně projekt pro celou organizaci: 120 výstupů, koordinace desítek oddělení a externích dodavatelů, interní portál s návody. Hotovo před termínem. Nejde o logo — jde o to, aby všechno fungovalo.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="zaciname" class="section_process background-color-inverse" data-relume="Layout 25 — split content + numbered list" data-screen-label="Jak začínáme" style="background: #000000; color: #ffffff;">
+    <div class="padding-global" style="padding-left: clamp(20px, 4vw, 32px); padding-right: clamp(20px, 4vw, 32px);">
+      <div class="container-large" style="max-width: 1200px; margin: 0 auto;">
+        <div class="padding-section-large" data-reveal="1" style="padding-top: clamp(72px, 10vw, 104px); padding-bottom: clamp(72px, 10vw, 104px); display: flex; gap: clamp(40px, 6vw, 80px); align-items: center; flex-wrap: wrap;">
+          <div class="process_content" style="display: flex; flex-direction: column; gap: 28px; flex: 1.2 1 380px; min-width: 300px;">
+            <div class="tagline-wrapper" style="display: flex; align-items: center; gap: 10px;">
+              <span style="width: 8px; height: 8px; background: #ff4d00;"></span>
+              <span class="tagline" style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">Jak začínáme</span>
+            </div>
+            <h2 class="heading-style-h2" style="margin: 0; font-size: clamp(36px, 5vw, 56px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.02;">Nestavíme, dokud nevíme proč.</h2>
+            <p class="text-size-medium" style="margin: 0; font-size: 18px; line-height: 1.55; color: rgba(255,255,255,0.62); max-width: 560px;">Každá spolupráce začíná rozhovorem o tom, co má projekt přinést — někdy se ukáže, že potřebujete něco jiného, než jste přišli poptat. První rozhovor je nezávazný.</p>
+            <div>
+              <a href="#kontakt" class="button" style="display: inline-flex; align-items: center; gap: 10px; background: #ff4d00; color: #000000; font-weight: 700; font-size: 16px; padding: 14px 24px; text-decoration: none; transition: background 120ms, color 120ms;" style-hover="background: #ffffff; color: #000000;" style-active="transform: translateY(1px);">Ozvěte se Lukášovi <span data-ar="1" aria-hidden="true" style="display: inline-block; transition: transform 200ms cubic-bezier(0.7, 0, 0.15, 1);">→</span></a>
+            </div>
+          </div>
+          <div class="process_list" style="display: flex; flex-direction: column; border-top: 1px solid rgba(255,255,255,0.24); flex: 1 1 340px; min-width: 300px;">
+            <div data-step="1" class="process_item" style="display: grid; grid-template-columns: 48px 130px 1fr; gap: 16px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,0.24); transition: padding 200ms cubic-bezier(0.7, 0, 0.15, 1);">
+              <span data-num="1" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 13px; color: rgba(255,255,255,0.62); transition: color 120ms;">01</span>
+              <strong style="font-size: 18px; font-weight: 700;">Rozhovor</strong>
+              <span style="font-size: 14px; color: rgba(255,255,255,0.62); line-height: 1.55;">Co má projekt přinést a komu.</span>
+            </div>
+            <div data-step="1" class="process_item" style="display: grid; grid-template-columns: 48px 130px 1fr; gap: 16px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,0.24); transition: padding 200ms cubic-bezier(0.7, 0, 0.15, 1);">
+              <span data-num="1" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 13px; color: rgba(255,255,255,0.62); transition: color 120ms;">02</span>
+              <strong style="font-size: 18px; font-weight: 700;">Zadání</strong>
+              <span style="font-size: 14px; color: rgba(255,255,255,0.62); line-height: 1.55;">Rozsah a plán, se kterým se dá hned stavět.</span>
+            </div>
+            <div data-step="1" class="process_item" style="display: grid; grid-template-columns: 48px 130px 1fr; gap: 16px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,0.24); transition: padding 200ms cubic-bezier(0.7, 0, 0.15, 1);">
+              <span data-num="1" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 13px; color: rgba(255,255,255,0.62); transition: color 120ms;">03</span>
+              <strong style="font-size: 18px; font-weight: 700;">Realizace</strong>
+              <span style="font-size: 14px; color: rgba(255,255,255,0.62); line-height: 1.55;">Design a stavba — vlastní výroba, nebo koordinace dodavatelů.</span>
+            </div>
+            <div data-step="1" class="process_item" style="display: grid; grid-template-columns: 48px 130px 1fr; gap: 16px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,0.24); transition: padding 200ms cubic-bezier(0.7, 0, 0.15, 1);">
+              <span data-num="1" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 13px; color: rgba(255,255,255,0.62); transition: color 120ms;">04</span>
+              <strong style="font-size: 18px; font-weight: 700;">Rozvoj</strong>
+              <span style="font-size: 14px; color: rgba(255,255,255,0.62); line-height: 1.55;">Vedeme to i po spuštění.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="kontakt" class="section_contact" data-relume="Contact 2 — customized letter form (contentEditable = custom code embed)" data-screen-label="Kontakt" style="background: #ffffff; border-top: 1px solid #e2e2e2;">
+    <div class="padding-global" style="padding-left: clamp(20px, 4vw, 32px); padding-right: clamp(20px, 4vw, 32px);">
+      <div class="container-large" style="max-width: 1200px; margin: 0 auto;">
+        <div class="padding-section-large" data-reveal="1" style="padding-top: clamp(72px, 10vw, 104px); padding-bottom: clamp(72px, 10vw, 104px); display: flex; gap: clamp(40px, 6vw, 80px); align-items: flex-start; flex-wrap: wrap;">
+          <div class="contact_content" style="display: flex; flex-direction: column; gap: 36px; flex: 1 1 320px; min-width: 280px;">
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+              <div class="tagline-wrapper" style="display: flex; align-items: center; gap: 10px;">
+                <span style="width: 8px; height: 8px; background: #ff4d00;"></span>
+                <span class="tagline" style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6f6f6f;">Kontakt</span>
+              </div>
+              <h2 class="heading-style-h2" style="margin: 0; font-size: clamp(40px, 5.5vw, 64px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.02;">Napište nám dopis<span style="color: #ff4d00;">.</span></h2>
+              <p class="text-size-medium" style="margin: 0; font-size: 18px; line-height: 1.55; color: #6f6f6f; max-width: 480px;">Formuláře jsou nuda. Doplňte pár slov a odešlete. Ozveme se do 24 hodin.</p>
+            </div>
+            <div class="contact_person" style="display: flex; gap: 24px; align-items: center; border-top: 1px solid #e2e2e2; padding-top: 28px; flex-wrap: wrap;">
+              <div style="width: 96px; height: 120px; background: #f4f4f4; border-bottom-left-radius: 100%; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                <span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10px; color: #6f6f6f;">foto</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <strong style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em;">Lukáš Svoboda</strong>
+                <span style="font-size: 14px; color: #6f6f6f;">Digital Project Lead</span>
+                <div style="display: flex; gap: 16px; margin-top: 4px; font-size: 14px;">
+                  <a href="mailto:studio@webkit.studio">studio@webkit.studio</a>
+                  <a href="#" target="_blank">LinkedIn</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="contact_form-wrapper" style="flex: 1.2 1 400px; min-width: 300px; overflow: hidden;">
+            <sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}">
+            <div ref="{{ letterFrameRef }}" style="background: #000000; padding: 8px; transition: transform 450ms cubic-bezier(0.7, 0, 0.15, 1), opacity 450ms;">
+            <div data-letter="1" style="background: #ffffff; padding: clamp(28px, 4vw, 44px); position: relative;">
+              <span data-stamp="1" aria-hidden="true" style="position: absolute; top: 20px; right: 20px; border: 1px solid #e2e2e2; padding: 7px; display: inline-flex; transition: transform 450ms cubic-bezier(0.7, 0, 0.15, 1);">
+                <svg viewBox="0 0 216 216" style="width: 30px; height: 30px;"><path d="M0 0C0 59.65 48.35 108 108 108L108 0Z" fill="#000000"></path><path d="M108 0C108 59.65 156.35 108 216 108L216 0Z" fill="#000000"></path><path d="M108 108C108 167.65 156.35 216 216 216L216 108Z" fill="#000000"></path><path d="M0 108H108V216H0Z" fill="#ff4d00"></path></svg>
+              </span>
+              <div style="display: flex; flex-direction: column; gap: 28px;">
+                <p style="margin: 0; padding-right: 56px; font-size: clamp(19px, 2vw, 23px); line-height: 2.1; font-weight: 500; letter-spacing: -0.01em;">Dobrý den,<br>jsem {{ blankName }} a pracuju jako {{ blankRole }} v&nbsp;{{ blankCompany }}. Píšu vám, protože {{ blankReason }}. Můj e-mail je {{ blankEmail }}.<br>Hezký den!</p>
+                <sc-if value="{{ mailError }}" hint-placeholder-val="{{ false }}">
+                  <div style="border-top: 1px solid #e2e2e2; padding-top: 14px; font-size: 15px; color: #ff4d00; font-weight: 600;">Tohle nevypadá jako e-mail. Mrkněte na překlep.</div>
+                </sc-if>
+                <div>
+                  <button onClick="{{ submitLetter }}" type="button" class="button" style="display: inline-flex; align-items: center; gap: 10px; background: #ff4d00; color: #000000; border: none; border-radius: 0; font-family: inherit; font-weight: 700; font-size: 16px; padding: 14px 24px; cursor: pointer; transition: background 120ms, color 120ms;" style-hover="background: #000000; color: #ffffff;" style-active="transform: translateY(1px);" style-focus="outline: 2px solid #ff4d00; outline-offset: 2px;">Odeslat dopis <span data-ar="1" aria-hidden="true" style="display: inline-block; transition: transform 200ms cubic-bezier(0.7, 0, 0.15, 1);">→</span></button>
+                </div>
+              </div>
+            </div>
+            </div>
+            </sc-if>
+            <sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">
+              <div ref="{{ sentRef }}" style="opacity: 0; transition: opacity 400ms; display: flex; flex-direction: column; gap: 14px; min-height: 240px; justify-content: center; border-top: 2px solid #000000; padding: 24px 0;">
+                <div style="width: 12px; height: 12px; background: #ff4d00;"></div>
+                <strong style="font-size: 28px; font-weight: 800; letter-spacing: -0.02em;">Děkujeme za odeslání{{ sentName }}!</strong>
+                <span style="color: #6f6f6f; line-height: 1.55;">Ozveme se do 24 hodin.</span>
+                <div style="border-top: 1px solid #e2e2e2; padding-top: 14px; font-size: 16px;">Spěchá to? Zavolejte: <a href="tel:+420000000000" style="font-weight: 700;">+420 000 000 000</a></div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer_component" data-relume="Footer 5 — slim" data-screen-label="Footer" style="border-top: 1px solid #e2e2e2; background: #ffffff;">
+    <div class="padding-global" style="padding-left: clamp(20px, 4vw, 32px); padding-right: clamp(20px, 4vw, 32px);">
+      <div class="container-large" style="max-width: 1200px; margin: 0 auto;">
+        <div class="footer_content" style="padding-top: 40px; padding-bottom: 40px; display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap;">
+          <svg viewBox="0 0 432 108" style="height: 16px; width: 64px;" aria-label="Webkit.Studio"><path d="M0 0H108V108H0Z" fill="#000000"></path><path d="M108 0C108 59.65 156.35 108 216 108L216 0Z" fill="#000000"></path><path d="M216 0C216 59.65 264.35 108 324 108L324 0Z" fill="#000000"></path><path d="M324 0C324 59.65 372.35 108 432 108L432 0Z" fill="#000000"></path></svg>
+          <nav class="footer_links" style="display: flex; gap: 24px; flex-wrap: wrap;">
+            <a href="#stavime" style="color: #6f6f6f; font-size: 14px; text-decoration: none; transition: color 120ms;" style-hover="color: #ff4d00;">Co stavíme</a>
+            <a href="#cases" style="color: #6f6f6f; font-size: 14px; text-decoration: none; transition: color 120ms;" style-hover="color: #ff4d00;">Práce</a>
+            <a href="#kontakt" style="color: #6f6f6f; font-size: 14px; text-decoration: none; transition: color 120ms;" style-hover="color: #ff4d00;">Kontakt</a>
+          </nav>
+          <span style="font-size: 13px; color: #6f6f6f;">© 2026 Webkit.Studio — Lukáš Svoboda · IČO 09296778</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;heroClaim&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;Výsledek, ne výstup.&quot;, &quot;options&quot;: [&quot;Výsledek, ne výstup.&quot;, &quot;Najdeme, co ostatní přehlídli.&quot;, &quot;Nestavíme, dokud nevíme proč.&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Hero&quot;},
+  &quot;animateBlocks&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Hero&quot;},
+  &quot;stickyHeader&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Navigace&quot;},
+  &quot;showRelumeLabels&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Handoff&quot;}
+}">
+class Component extends DCLogic {
+  state = { sent: false, mailError: false, senderName: '', blocksForm: 'row' };
+  letter = {};
+
+  componentDidMount() {
+    this.applyHeader();
+    this.applyRelumeLabels();
+    this.syncAnimation();
+    this.setupReveal();
+    this.setupScrollProgress();
+    this.setupFollower();
+    this.setupHeroPlay();
+    this.setupCasesPreview();
+  }
+  componentDidUpdate() {
+    this.applyHeader();
+    this.applyRelumeLabels();
+    this.syncAnimation();
+  }
+  componentWillUnmount() {
+    if (this.timer) clearInterval(this.timer);
+    if (this.observer) this.observer.disconnect();
+    if (this.onScroll) window.removeEventListener('scroll', this.onScroll);
+    if (this.physRaf) cancelAnimationFrame(this.physRaf);
+    if (this.returnTimer) clearTimeout(this.returnTimer);
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+  }
+
+  applyHeader() {
+    if (this.headerEl) {
+      this.headerEl.style.position = (this.props.stickyHeader ?? false) ? 'sticky' : 'static';
+    }
+  }
+
+  applyRelumeLabels() {
+    const on = this.props.showRelumeLabels ?? false;
+    document.querySelectorAll('[data-relume]').forEach((el) => {
+      let tag = el.querySelector(':scope > [data-relume-tag]');
+      if (on && !tag) {
+        tag = document.createElement('span');
+        tag.setAttribute('data-relume-tag', '1');
+        tag.setAttribute('aria-hidden', 'true');
+        tag.textContent = el.getAttribute('data-relume');
+        tag.style.cssText = 'position:absolute;top:8px;left:8px;z-index:55;font-family:ui-monospace,Menlo,monospace;font-size:10px;line-height:1.4;background:#000000;color:#ffffff;padding:4px 8px;pointer-events:none;max-width:70%;';
+        if (getComputedStyle(el).position === 'static' && el.tagName !== 'HEADER') el.style.position = 'relative';
+        el.appendChild(tag);
+      } else if (!on && tag) {
+        tag.remove();
+      }
+    });
+  }
+
+  reduced() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  syncAnimation() {
+    if (this.phys) return;
+    const on = (this.props.animateBlocks ?? true) && !this.reduced();
+    if (on && !this.timer) {
+      this.timer = setInterval(() => {
+        this.setState((s) => ({ blocksForm: s.blocksForm === 'row' ? 'square' : 'row' }));
+      }, 3200);
+    } else if (!on && this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+      if (this.state.blocksForm !== 'row') this.setState({ blocksForm: 'row' });
+    }
+  }
+
+  setupReveal() {
+    if (this.revealWired || this.reduced() || !('IntersectionObserver' in window)) return;
+    this.revealWired = true;
+    const els = Array.from(document.querySelectorAll('[data-reveal]'));
+    if (!els.length) return;
+    const show = (el) => {
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+      if (this.observer) this.observer.unobserve(el);
+    };
+    const inView = (el) => {
+      const r = el.getBoundingClientRect();
+      return r.bottom > 0 && r.top < window.innerHeight;
+    };
+    els.forEach((el, i) => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(20px)';
+      el.style.transition = 'opacity 450ms cubic-bezier(0.7, 0, 0.15, 1), transform 450ms cubic-bezier(0.7, 0, 0.15, 1)';
+      el.style.transitionDelay = (i % 4) * 60 + 'ms';
+    });
+    this.observer = new IntersectionObserver((entries) => {
+      for (const en of entries) {
+        if (en.isIntersecting) show(en.target);
+      }
+    }, { threshold: 0.12 });
+    els.forEach((el) => this.observer.observe(el));
+    const pending = () => els.filter((el) => el.style.opacity !== '1');
+    const check = () => {
+      if (window.innerHeight === 0) return;
+      pending().forEach((el) => { if (inView(el)) show(el); });
+    };
+    window.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('resize', check);
+    requestAnimationFrame(check);
+    let ticks = 0;
+    const iv = setInterval(() => {
+      ticks += 1;
+      check();
+      if (!pending().length || ticks > 40) clearInterval(iv);
+    }, 400);
+  }
+
+  setupScrollProgress() {
+    if (this.onScroll) return;
+    let raf = null;
+    this.onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        if (!this.progressEl) return;
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+        this.progressEl.style.width = (p * 100).toFixed(2) + '%';
+      });
+    };
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+    this.onScroll();
+  }
+
+  setupFollower() {
+    if (this.followerWired || !this.heroEl || this.reduced()) return;
+    this.followerWired = true;
+    const GRID = 48;
+    this.heroEl.addEventListener('mousemove', (e) => {
+      const f = this.followerEl;
+      if (!f) return;
+      const rect = this.heroEl.getBoundingClientRect();
+      const fsc = this.heroEl.offsetWidth ? rect.width / this.heroEl.offsetWidth : 1;
+      const gx = Math.floor((e.clientX - rect.left) / fsc / GRID) * GRID + 8;
+      const gy = Math.floor((e.clientY - rect.top) / fsc / GRID) * GRID + 8;
+      const alt = ((gx + gy) / GRID) % 2 === 0;
+      f.style.transform = 'translate(' + gx + 'px,' + gy + 'px)';
+      f.style.borderBottomLeftRadius = alt ? '100%' : '0';
+      f.style.background = alt ? '#ffe9df' : '#f4f4f4';
+      f.style.opacity = '1';
+      const h = this.hintEl;
+      if (h) {
+        const overUi = e.target.closest('a, button, h1, h2, p, input, textarea, [data-blocks], [data-ph], [data-phys]');
+        if (overUi) {
+          h.style.opacity = '0';
+        } else {
+          h.style.transform = 'translate(' + ((e.clientX - rect.left) / fsc + 18) + 'px,' + ((e.clientY - rect.top) / fsc + 22) + 'px)';
+          h.style.opacity = '1';
+        }
+      }
+    });
+    this.heroEl.addEventListener('mouseleave', () => {
+      if (this.followerEl) this.followerEl.style.opacity = '0';
+      if (this.hintEl) this.hintEl.style.opacity = '0';
+    });
+  }
+
+  setupCasesPreview() {
+    if (this.previewWired || !this.casesGridEl) return;
+    this.previewWired = true;
+    const grid = this.casesGridEl;
+    grid.addEventListener('mousemove', (e) => {
+      const p = this.previewEl;
+      if (!p) return;
+      const art = e.target.closest('[data-case]');
+      if (!art) { p.style.opacity = '0'; return; }
+      const h3 = art.querySelector('h3');
+      const tag = art.querySelector('[data-tag]');
+      if (this.previewLabelEl) {
+        this.previewLabelEl.textContent = (h3 ? h3.textContent : '') + ' — ' + (tag ? tag.textContent.toLowerCase() : 'ukázka');
+      }
+      const gr = grid.getBoundingClientRect();
+      const gsc = grid.offsetWidth ? gr.width / grid.offsetWidth : 1;
+      p.style.left = ((e.clientX - gr.left) / gsc - 130) + 'px';
+      p.style.top = ((e.clientY - gr.top) / gsc - 90) + 'px';
+      p.style.opacity = '1';
+    });
+    grid.addEventListener('mouseleave', () => {
+      if (this.previewEl) this.previewEl.style.opacity = '0';
+    });
+  }
+
+  setupHeroPlay() {
+    if (this.playWired || !this.heroEl) return;
+    this.playWired = true;
+    const hero = this.heroEl;
+    hero.addEventListener('click', (e) => {
+      if (this.reduced()) return;
+      if (window.matchMedia && window.matchMedia('(hover: none)').matches) return;
+      if (Date.now() < (this.suppressClickUntil || 0)) return;
+      if (e.target.closest('a, button, h1, h2, p, input, textarea, [data-blocks], [data-ph], [data-phys]')) return;
+      const r = hero.getBoundingClientRect();
+      const sc = hero.offsetWidth ? r.width / hero.offsetWidth : 1;
+      this.startPhysics((e.clientX - r.left) / sc, (e.clientY - r.top) / sc);
+    });
+    hero.addEventListener('pointerleave', (e) => {
+      if (this.phys && e.pointerType === 'mouse' && !this.phys.bodies.some((b) => b.drag)) {
+        if (this.returnTimer) clearTimeout(this.returnTimer);
+        this.returnTimer = setTimeout(() => this.returnBlocks(), 2000);
+      }
+    });
+    hero.addEventListener('pointerenter', () => {
+      if (this.returnTimer) { clearTimeout(this.returnTimer); this.returnTimer = null; }
+    });
+  }
+
+  startPhysics(cx, cy) {
+    if (this.phys) { this.addPhysBlock(cx, cy); this.pokeIdle(); return; }
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+    const hero = this.heroEl, wrap = this.blocksWrapEl;
+    if (!hero || !wrap) return;
+    const U = 56;
+    const hr = hero.getBoundingClientRect();
+    const wr = wrap.getBoundingClientRect();
+    const psc = hero.offsetWidth ? hr.width / hero.offsetWidth : 1;
+    const bx = (wr.left - hr.left) / psc, by = (wr.top - hr.top) / psc;
+    const cells = this.state.blocksForm === 'row'
+      ? [[0, 0], [U, 0], [2 * U, 0], [3 * U, 0]]
+      : [[0, U], [0, 0], [U, 0], [U, U]];
+    const home = cells.map(([x, y]) => [bx + x, by + y]);
+    wrap.style.visibility = 'hidden';
+    this.phys = { bodies: [], home };
+    home.forEach((h, i) => this.makeBody(h[0], h[1], i === 0 ? '#ff4d00' : '#000000', i === 0 ? 'square' : 'quarter'));
+    this.addPhysBlock(cx, cy);
+    this.runPhysics();
+    this.pokeIdle();
+  }
+
+  addPhysBlock(x, y) {
+    const U = 56;
+    const r = Math.random();
+    const shape = r < 0.5 ? 'square' : r < 0.8 ? 'quarter' : 'circle';
+    const color = Math.random() < 0.3 ? '#ff4d00' : '#000000';
+    const b = this.makeBody(x - U / 2, y - U / 2, color, shape);
+    b.vx = (Math.random() - 0.5) * 6;
+    b.vy = -6;
+  }
+
+  makeBody(x, y, color, shape) {
+    const U = 56, hero = this.heroEl;
+    const el = document.createElement('span');
+    el.setAttribute('aria-hidden', 'true');
+    el.setAttribute('data-phys', '1');
+    el.style.cssText = 'position:absolute;left:0;top:0;width:' + U + 'px;height:' + U + 'px;z-index:5;cursor:grab;touch-action:none;will-change:transform;background:' + color + ';' + (shape === 'quarter' ? 'border-bottom-left-radius:100%;' : shape === 'circle' ? 'border-radius:50%;' : '');
+    el.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+    hero.appendChild(el);
+    const b = { el, x, y, vx: 0, vy: 0, drag: null };
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      el.setPointerCapture(e.pointerId);
+      const r = hero.getBoundingClientRect();
+      const sc = hero.offsetWidth ? r.width / hero.offsetWidth : 1;
+      b.drag = { ox: (e.clientX - r.left) / sc - b.x, oy: (e.clientY - r.top) / sc - b.y, px: e.clientX, py: e.clientY, sc };
+      el.style.cursor = 'grabbing';
+      this.pokeIdle();
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!b.drag) return;
+      const r = hero.getBoundingClientRect();
+      const sc = hero.offsetWidth ? r.width / hero.offsetWidth : 1;
+      b.x = (e.clientX - r.left) / sc - b.drag.ox;
+      b.y = (e.clientY - r.top) / sc - b.drag.oy;
+      b.vx = (e.clientX - b.drag.px) / sc;
+      b.vy = (e.clientY - b.drag.py) / sc;
+      b.drag.px = e.clientX;
+      b.drag.py = e.clientY;
+    });
+    const up = () => {
+      if (b.drag) this.suppressClickUntil = Date.now() + 300;
+      b.drag = null;
+      el.style.cursor = 'grab';
+    };
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+    this.phys.bodies.push(b);
+    return b;
+  }
+
+  runPhysics() {
+    const hero = this.heroEl, U = 56;
+    const step = () => {
+      if (!this.phys) return;
+      const W = hero.clientWidth, H = hero.clientHeight;
+      const bodies = this.phys.bodies;
+      for (const b of bodies) {
+        if (!b.drag) {
+          b.vy += 1.3;
+          b.vx *= 0.98;
+          if (b.vx > 60) b.vx = 60; else if (b.vx < -60) b.vx = -60;
+          if (b.vy > 60) b.vy = 60; else if (b.vy < -60) b.vy = -60;
+          b.x += b.vx;
+          b.y += b.vy;
+        }
+        if (b.y + U > H) {
+          b.y = H - U;
+          if (b.vy > 7) b.vy = -b.vy * 0.22; else if (b.vy > 0) b.vy = 0;
+          b.vx *= 0.46;
+        }
+        if (b.y < 0) { b.y = 0; b.vy = 0; }
+        if (b.x < 0) { b.x = 0; b.vx = 0; }
+        if (b.x + U > W) { b.x = W - U; b.vx = 0; }
+      }
+      for (let it = 0; it < 3; it++) {
+        for (let i = 0; i < bodies.length; i++) {
+          for (let j = i + 1; j < bodies.length; j++) {
+            const a = bodies[i], c = bodies[j];
+            const ox = Math.min(a.x + U, c.x + U) - Math.max(a.x, c.x);
+            const oy = Math.min(a.y + U, c.y + U) - Math.max(a.y, c.y);
+            if (ox <= 0 || oy <= 0) continue;
+            if (ox < oy) {
+              const s = a.x < c.x ? 1 : -1;
+              if (a.drag && !c.drag) { c.x += s * ox; c.vx = 0; }
+              else if (c.drag && !a.drag) { a.x -= s * ox; a.vx = 0; }
+              else if (!a.drag && !c.drag) { a.x -= s * ox / 2; c.x += s * ox / 2; a.vx = 0; c.vx = 0; }
+            } else {
+              const s = a.y < c.y ? 1 : -1;
+              if (a.drag && !c.drag) { c.y += s * oy; c.vy = 0; }
+              else if (c.drag && !a.drag) { a.y -= s * oy; a.vy = 0; }
+              else if (!a.drag && !c.drag) { a.y -= s * oy / 2; c.y += s * oy / 2; a.vy = 0; c.vy = 0; }
+            }
+          }
+        }
+      }
+      for (const b of bodies) {
+        if (b.y + U > H) { b.y = H - U; if (b.vy > 0) b.vy = 0; }
+        if (b.y < 0) b.y = 0;
+        if (b.x < 0) b.x = 0;
+        if (b.x + U > W) b.x = W - U;
+      }
+      for (const b of bodies) b.el.style.transform = 'translate(' + b.x + 'px,' + b.y + 'px)';
+      this.physRaf = requestAnimationFrame(step);
+    };
+    this.physRaf = requestAnimationFrame(step);
+  }
+
+  pokeIdle() {
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    this.idleTimer = setTimeout(() => this.returnBlocks(), 15000);
+  }
+
+  returnBlocks() {
+    if (!this.phys) return;
+    if (this.physRaf) cancelAnimationFrame(this.physRaf);
+    if (this.returnTimer) { clearTimeout(this.returnTimer); this.returnTimer = null; }
+    if (this.idleTimer) { clearTimeout(this.idleTimer); this.idleTimer = null; }
+    const { bodies, home } = this.phys;
+    bodies.forEach((b, i) => {
+      b.el.style.transition = 'transform 450ms cubic-bezier(0.7, 0, 0.15, 1), opacity 450ms';
+      const t = home[i] || home[0];
+      b.el.style.transform = 'translate(' + t[0] + 'px,' + t[1] + 'px)';
+      if (!home[i]) b.el.style.opacity = '0';
+    });
+    setTimeout(() => {
+      bodies.forEach((b) => b.el.remove());
+      if (this.blocksWrapEl) this.blocksWrapEl.style.visibility = 'visible';
+      this.phys = null;
+      this.syncAnimation();
+    }, 480);
+  }
+
+  blank(key, placeholder) {
+    return React.createElement('span', {
+      key,
+      contentEditable: true,
+      suppressContentEditableWarning: true,
+      spellCheck: false,
+      'data-ph': placeholder,
+      role: 'textbox',
+      'aria-label': placeholder,
+      onInput: (e) => {
+        this.letter[key] = e.currentTarget.textContent || '';
+        if (key === 'email' && this.state.mailError) this.setState({ mailError: false });
+      },
+      style: {
+        display: 'inline',
+        borderBottom: '1px solid #000000',
+        padding: '0 3px',
+        margin: '0 1px',
+        outline: 'none',
+        color: '#000000',
+        fontWeight: 700,
+        whiteSpace: 'normal',
+        boxDecorationBreak: 'clone',
+        WebkitBoxDecorationBreak: 'clone',
+        transition: 'border-color 120ms, background 120ms',
+      },
+    });
+  }
+
+  renderVals() {
+    const claim = this.props.heroClaim ?? 'Výsledek, ne výstup.';
+    return {
+      headerRef: (el) => {
+        this.headerEl = el;
+        if (el) el.style.position = (this.props.stickyHeader ?? false) ? 'sticky' : 'static';
+      },
+      heroRef: (el) => { this.heroEl = el; if (el) { this.setupFollower(); this.setupHeroPlay(); } },
+      followerRef: (el) => { this.followerEl = el; },
+      hintRef: (el) => { this.hintEl = el; },
+      progressRef: (el) => { this.progressEl = el; },
+      blocksWrapRef: (el) => { this.blocksWrapEl = el; },
+      casesGridRef: (el) => { this.casesGridEl = el; if (el) this.setupCasesPreview(); },
+      previewRef: (el) => { this.previewEl = el; },
+      previewLabelRef: (el) => { this.previewLabelEl = el; },
+      letterFrameRef: (el) => { this.letterFrameEl = el; },
+      sentRef: (el) => { this.sentEl = el; if (el && this.state.sent) requestAnimationFrame(() => { el.style.opacity = '1'; }); },
+      claimVysledek: claim === 'Výsledek, ne výstup.',
+      claimPrehlidli: claim === 'Najdeme, co ostatní přehlídli.',
+      claimProc: claim === 'Nestavíme, dokud nevíme proč.',
+      blocksForm: this.state.blocksForm,
+      blockSize: 56,
+      toggleBlocks: () => {
+        this.setState((s) => ({ blocksForm: s.blocksForm === 'row' ? 'square' : 'row' }));
+      },
+      blankName: this.blank('name', 'vaše jméno'),
+      blankRole: this.blank('role', 'pozice'),
+      blankCompany: this.blank('company', 'firma'),
+      blankReason: this.blank('reason', 'co potřebujete vyřešit'),
+      blankEmail: this.blank('email', 'e-mail'),
+      sent: this.state.sent,
+      notSent: !this.state.sent,
+      sentName: this.state.senderName ? ', ' + this.state.senderName : '',
+      mailError: this.state.mailError,
+      submitLetter: () => {
+        const email = (this.letter.email || '').trim();
+        if (!/^\S+@\S+\.\S+$/.test(email)) {
+          this.setState({ mailError: true });
+          return;
+        }
+        const fin = () => this.setState({ sent: true, senderName: (this.letter.name || '').trim() });
+        const frame = this.letterFrameEl;
+        if (frame && !this.reduced()) {
+          frame.style.transform = 'translateX(-115%)';
+          frame.style.opacity = '0';
+          setTimeout(fin, 470);
+        } else {
+          fin();
+        }
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

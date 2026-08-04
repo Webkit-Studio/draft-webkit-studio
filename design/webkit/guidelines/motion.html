@@ -1,0 +1,34 @@
+<!-- @dsCard group="Motion" viewport="700x220" name="Motion — assembly" subtitle="Bloky se skládají: řada ↔ čtverec · ease-snap · stagger 60ms" -->
+<!DOCTYPE html>
+<html lang="cs">
+<head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  .stage { position: relative; width: 176px; height: 110px; }
+  .blk { position: absolute; width: 44px; height: 44px; background: var(--black); animation: move 3.8s var(--ease-snap) infinite; }
+  .q { border-bottom-left-radius: 100%; }
+  .b-sq { left: 0; top: 33px; --dx: 0px; --dy: 11px; }
+  .b-q1 { left: 44px; top: 33px; --dx: -44px; --dy: -33px; }
+  .b-q2 { left: 88px; top: 33px; --dx: -44px; --dy: -33px; animation-delay: 60ms; }
+  .b-q3 { left: 132px; top: 33px; --dx: -88px; --dy: 11px; animation-delay: 120ms; }
+  @keyframes move {
+    0%, 32% { transform: translate(0, 0); }
+    46%, 82% { transform: translate(var(--dx), var(--dy)); }
+    96%, 100% { transform: translate(0, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) { .blk { animation: none; } }
+</style>
+</head>
+<body style="padding: 24px 32px; display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: center;">
+  <div class="stage">
+    <div class="blk b-sq"></div>
+    <div class="blk q b-q1"></div>
+    <div class="blk q b-q2"></div>
+    <div class="blk q b-q3"></div>
+  </div>
+  <div style="font-size: var(--text-sm); line-height: var(--leading-body); display: flex; flex-direction: column; gap: 8px;">
+    <div>Motion je mechanický: translate + tvrdé dosednutí. Žádný bounce, žádné elastic, žádné fade-na-všechno.</div>
+    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">--ease-snap cubic-bezier(.7,0,.15,1) · fast 120ms (hover) · base 200ms (UI) · slow 450ms (assembly) · stagger 60ms</div>
+    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">respektovat prefers-reduced-motion</div>
+  </div>
+</body>
+</html>
