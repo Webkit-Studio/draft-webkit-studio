@@ -7,11 +7,13 @@
  * Bez data-client (rozcestník) brána pustí každého přihlášeného uživatele
  * a v co-brandu je jen WEBKIT.STUDIO.
  *
- * Přístup k projektu řídí user_metadata uživatele v Supabase:
+ * Přístup k projektu řídí app_metadata uživatele v Supabase (uživatel si je
+ * sám nepřepíše, shodné s RLS i JWT):
  *   role "admin"  → všechny projekty,
  *   projects      → pole slugů, musí obsahovat data-client.
- * Uživatele zakládá Lukáš v Supabase (Dashboard → Authentication → Users),
- * hesla se do repa nikdy neukládají.
+ * Z user_metadata se čtou jen jména – nikdy role ani projekty (je
+ * editovatelné přes PUT /auth/v1/user). Přístupy nastavuje admin v sekci
+ * Správa (píše app_metadata), hesla se do repa nikdy neukládají.
  *
  * Session: access_token + refresh_token v localStorage ("draft-session"),
  * při načtení ověření GET /auth/v1/user, při 401 obnova refresh tokenem.
@@ -384,10 +386,9 @@
     return first + (last ? ' ' + last.charAt(0).toUpperCase() + '.' : '');
   }
 
-  function hasAccess(meta) {
+  function hasAccess(role, projects) {
     if (!slug) return true; /* rozcestník – stačí být přihlášený */
-    if (meta.role === 'admin') return true;
-    var projects = meta.projects;
+    if (role === 'admin') return true;
     if (!projects || !projects.length) return false;
     for (var i = 0; i < projects.length; i++) {
       if (projects[i] === slug) return true;
@@ -395,18 +396,24 @@
     return false;
   }
 
+  /* Autorizace výhradně z app_metadata (uživatel si je sám nepřepíše,
+     shodné s RLS). user_metadata je editovatelné přes PUT /auth/v1/user,
+     takže z něj čteme jen jména – nikdy roli ani projekty. */
   function finish(user) {
-    var meta = (user && user.user_metadata) || {};
-    if (!hasAccess(meta)) {
+    var umeta = (user && user.user_metadata) || {};
+    var ameta = (user && user.app_metadata) || {};
+    var role = ameta.role || '';
+    var projects = ameta.projects || [];
+    if (!hasAccess(role, projects)) {
       showDenied();
       return;
     }
     window.draftUser = {
       id: user.id,
       email: user.email,
-      name: displayName(meta, user.email),
-      role: meta.role || '',
-      projects: meta.projects || []
+      name: displayName(umeta, user.email),
+      role: role,
+      projects: projects
     };
     var names = document.querySelectorAll('[data-auth-name]');
     for (var i = 0; i < names.length; i++) names[i].textContent = window.draftUser.name;

@@ -66,11 +66,13 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
   zkusí refresh. Registrace neexistuje, účty zakládá Lukáš v Supabase
   (Dashboard → Authentication → Users). **Hesla ani service_role klíč do
   repa nikdy** (repo je veřejné).
-- Přístup per projekt přes `user_metadata`: `role: "admin"` smí všude,
-  jinak pole `projects` musí obsahovat slug z `data-client`. Bez přístupu
-  se místo obsahu ukáže „Nemáte přístup k tomuto projektu." Bez
-  `data-client` (rozcestník) stačí být přihlášený; co-brand je jen
-  WEBKIT.STUDIO.
+- Přístup per projekt přes `app_metadata` (uživatel si je sám nepřepíše;
+  `user_metadata` je editovatelné, do bezpečnosti nikdy nepatří):
+  `role: "admin"` smí všude, jinak pole `projects` musí obsahovat slug
+  z `data-client`. Gate čte autorizaci výhradně z `app_metadata`,
+  z `user_metadata` jen jména. Bez přístupu se místo obsahu ukáže
+  „Nemáte přístup k tomuto projektu." Bez `data-client` (rozcestník)
+  stačí být přihlášený; co-brand je jen WEBKIT.STUDIO.
 - Po odemčení gate naplní `[data-auth-name]` (jméno „Lukáš S."), odkryje
   `[data-auth]`, naváže `[data-auth-signout]` a vystaví `window.draftUser`
   + `window.draftAuth.fetch` (autorizovaný fetch pro REST) + událost
@@ -81,8 +83,9 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
 - Aktivace ve viewerech (před `</body>`):
   `<script src="/assets/comments.js" data-project="<slug>" data-version="v<N>" data-view="desktop|mobile"></script>`
   Lišta vieweru musí mít `<button class="cbtn" data-comments-toggle hidden>`.
-- Data v Supabase tabulce `comments` (REST `/rest/v1/comments`, RLS podle
-  `user_metadata`). Pozice pinu = `data-screen-label` sekce plátna +
+- Data v Supabase tabulce `comments` (REST `/rest/v1/comments`, RLS přes
+  `has_project_access` nad `app_metadata`). Pozice pinu =
+  `data-screen-label` sekce plátna +
   relativní x/y (0–1) uvnitř sekce. Panel ukazuje oba pohledy pro
   projekt+verzi, pin se kreslí jen v aktuálním pohledu; klik na komentář
   z druhého pohledu přechází na druhý viewer s `#c=<id>`. Mazání
@@ -99,25 +102,36 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
 
 - Tabulka `projects` (slug, name, subtitle, sort) je zdroj pravdy pro
   rozcestník; RLS: select podle `has_project_access(slug)`, insert/update/
-  delete jen role admin.
+  delete jen role admin (čteno z `app_metadata`).
+- Autorizace stojí na `app_metadata` (uživatel needitovatelné): `role` a
+  `projects` tam zrcadlí `admin_set_user_projects`; `user_metadata` drží
+  jen jména + zrcadlo pro UI. `has_project_access` i admin funkce/politiky
+  čtou výhradně `app_metadata`.
 - Admin logika výhradně přes SQL funkce (security definer, kontrola role
   uvnitř) volané přes `/rest/v1/rpc/` tokenem přihlášeného admina:
-  `admin_list_users`, `admin_set_user_projects`. **Service_role klíč nikdy
-  v repu ani v prohlížeči.** Skrytí Správy v UI není bezpečnostní prvek –
-  bezpečnost drží RLS a funkce.
+  `admin_list_users`, `admin_set_user_projects` (zapisuje `app_metadata` i
+  zrcadlo v `user_metadata`). **Service_role klíč nikdy v repu ani v
+  prohlížeči.** Skrytí Správy v UI není bezpečnostní prvek – bezpečnost
+  drží RLS a funkce.
+- Grants: `anon` má na `projects`/`comments` jen SELECT (RLS vrací prázdno,
+  keepalive dostává 200 `[]`), `authenticated` bez DELETE na `comments`
+  (mazání neexistuje, jen „Vyřešeno").
 - Smazání projektu maže jen záznam; komentáře v databázi i složka v repu
-  zůstávají. Změna přístupů se projeví po příštím přihlášení uživatele.
+  zůstávají. Změna přístupů se projeví po příštím přihlášení / obnovení
+  session uživatele (nový JWT s aktuálním `app_metadata`).
 
 ## Postupy
 
 ### Nový klient
 1. V Supabase založit/upravit uživatele klienta: heslo drží Lukáš mimo
-   repo, `user_metadata` = `first_name`, `last_name` a `projects`
-   (pole slugů, doplnit nový slug).
+   repo, `user_metadata` = `first_name`, `last_name`. Přístup k projektům
+   se nenastavuje ručně – řídí ho `app_metadata`, které zapisuje sekce
+   „Správa" (krok 3). (Roli admin lze nastavit jen v `app_metadata`
+   uživatele, ne přes UI.)
 2. Zkopírovat `anse/index.html` → `/<slug>/index.html`; upravit `<title>`,
    `data-client`, `data-client-name`, `.cname` a `<h1>`.
 3. Přidat projekt v sekci „Správa" na rozcestníku (slug = název složky)
-   a zaškrtnout uživateli přístup.
+   a zaškrtnout uživateli přístup (píše se do `app_metadata`).
 
 ### Nová verze návrhu
 1. Založit `/<slug>/v<N>/` podle `arbosis/v1/`.
