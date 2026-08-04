@@ -7,8 +7,10 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
 
 ## Struktura
 
-- `/index.html` – rozcestník klientů, bez hesla. Řádek klienta = **jen název
-  a šipka**, žádné podtitulky ani stavy.
+- `/index.html` – rozcestník za přihlášením (gate.js bez `data-client`,
+  pustí každého přihlášeného). Seznam projektů se generuje z tabulky
+  `projects` (RLS vrací jen povolené): název + případný podtitulek + šipka.
+  Pro roli admin sekce „Správa" (`/assets/admin.js`).
 - `/<slug>/index.html` – stránka klienta, za bránou.
   Vzor s nahranou verzí: `arbosis/index.html`. Vzor bez verze: `anse/index.html`.
 - `/<slug>/v<N>/desktop.html` + `mobile.html` – prohlížeč návrhu, za bránou.
@@ -20,7 +22,10 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
   konfigurace; service_role klíč do repa nikdy).
 - `/assets/gate.js` – sdílené přihlášení přes Supabase Auth (e-mail + heslo).
 - `/assets/comments.js` – komentáře s piny ve viewerech.
+- `/assets/admin.js` – sekce „Správa" na rozcestníku (jen role admin).
 - `/assets/favicon.svg|png` – favicon (čtvercový symbol na černé).
+- `/.github/workflows/keepalive.yml` – denní ping Supabase REST proti
+  pauzování free tieru (+ udržovací commit 1× za 30 dní).
 - `/design/webkit/` – handoff design systému. **Zdroj pravdy pro veškerý styl.**
 
 ## Pravidla
@@ -63,7 +68,9 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
   repa nikdy** (repo je veřejné).
 - Přístup per projekt přes `user_metadata`: `role: "admin"` smí všude,
   jinak pole `projects` musí obsahovat slug z `data-client`. Bez přístupu
-  se místo obsahu ukáže „Nemáte přístup k tomuto projektu."
+  se místo obsahu ukáže „Nemáte přístup k tomuto projektu." Bez
+  `data-client` (rozcestník) stačí být přihlášený; co-brand je jen
+  WEBKIT.STUDIO.
 - Po odemčení gate naplní `[data-auth-name]` (jméno „Lukáš S."), odkryje
   `[data-auth]`, naváže `[data-auth-signout]` a vystaví `window.draftUser`
   + `window.draftAuth.fetch` (autorizovaný fetch pro REST) + událost
@@ -88,6 +95,19 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
   Markdownu (jen role admin). Na klientském indexu štítek počtu
   komentářů u verze (`[data-vc="v<N>"]` + inline skript).
 
+## Projekty a Správa (admin.js)
+
+- Tabulka `projects` (slug, name, subtitle, sort) je zdroj pravdy pro
+  rozcestník; RLS: select podle `has_project_access(slug)`, insert/update/
+  delete jen role admin.
+- Admin logika výhradně přes SQL funkce (security definer, kontrola role
+  uvnitř) volané přes `/rest/v1/rpc/` tokenem přihlášeného admina:
+  `admin_list_users`, `admin_set_user_projects`. **Service_role klíč nikdy
+  v repu ani v prohlížeči.** Skrytí Správy v UI není bezpečnostní prvek –
+  bezpečnost drží RLS a funkce.
+- Smazání projektu maže jen záznam; komentáře v databázi i složka v repu
+  zůstávají. Změna přístupů se projeví po příštím přihlášení uživatele.
+
 ## Postupy
 
 ### Nový klient
@@ -96,7 +116,8 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
    (pole slugů, doplnit nový slug).
 2. Zkopírovat `anse/index.html` → `/<slug>/index.html`; upravit `<title>`,
    `data-client`, `data-client-name`, `.cname` a `<h1>`.
-3. Přidat řádek na rozcestník (abecedně): jen název + šipka.
+3. Přidat projekt v sekci „Správa" na rozcestníku (slug = název složky)
+   a zaškrtnout uživateli přístup.
 
 ### Nová verze návrhu
 1. Založit `/<slug>/v<N>/` podle `arbosis/v1/`.

@@ -4,6 +4,8 @@
  * Použití na chráněné stránce (do <head>, hned za <title>, config.js první):
  *   <script src="/assets/config.js"></script>
  *   <script src="/assets/gate.js" data-client="arbosis" data-client-name="Arbosis"></script>
+ * Bez data-client (rozcestník) brána pustí každého přihlášeného uživatele
+ * a v co-brandu je jen WEBKIT.STUDIO.
  *
  * Přístup k projektu řídí user_metadata uživatele v Supabase:
  *   role "admin"  → všechny projekty,
@@ -26,9 +28,9 @@
   'use strict';
 
   var script = document.currentScript;
-  var slug = script && script.getAttribute('data-client');
-  if (!slug) return;
-  var clientName = (script.getAttribute('data-client-name') || slug);
+  if (!script) return;
+  var slug = script.getAttribute('data-client') || '';
+  var clientName = script.getAttribute('data-client-name') || slug;
 
   var CFG = window.DRAFT_CONFIG || {};
   var API = String(CFG.SUPABASE_URL || '').replace(/\/+$/, '');
@@ -251,11 +253,14 @@
     overlay.innerHTML =
       '<div class="wsg-box">' +
         '<div class="wsg-brand">' + SYMBOL + '<b class="wsg-word">WEBKIT.STUDIO</b>' +
-          '<span class="wsg-co"><span class="wsg-x" aria-hidden="true">x</span><span class="wsg-cname"></span></span></div>' +
+          (clientName
+            ? '<span class="wsg-co"><span class="wsg-x" aria-hidden="true">x</span><span class="wsg-cname"></span></span>'
+            : '') +
+        '</div>' +
         bodyHtml +
       '</div>' +
       '<div class="wsg-blocks" aria-hidden="true"><i></i><i></i><i></i></div>';
-    overlay.querySelector('.wsg-cname').textContent = clientName;
+    if (clientName) overlay.querySelector('.wsg-cname').textContent = clientName;
     root.style.visibility = '';
     fitBrand();
   }
@@ -380,6 +385,7 @@
   }
 
   function hasAccess(meta) {
+    if (!slug) return true; /* rozcestník – stačí být přihlášený */
     if (meta.role === 'admin') return true;
     var projects = meta.projects;
     if (!projects || !projects.length) return false;

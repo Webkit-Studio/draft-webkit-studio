@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Draft – Webkit.Studio</title>
+<script src="/assets/config.js"></script>
+<script src="/assets/gate.js"></script>
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon.png">
 <link rel="apple-touch-icon" href="/assets/favicon.png">
@@ -26,9 +28,16 @@
   .wrap{width:100%;max-width:720px;margin:0 auto;padding:0 24px}
   main{flex:1;display:flex;align-items:center}
   .list{width:100%;padding:64px 0}
-  .brand{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px 24px;flex-wrap:wrap;margin-bottom:32px}
+  .brand{display:flex;align-items:center;gap:12px}
   .brand svg{display:block;height:24px;width:auto;fill:var(--black)}
   .brand b{font-size:13px;font-weight:700;letter-spacing:.02em}
+  .who{display:inline-flex;align-items:baseline;gap:14px;font-size:13px;white-space:nowrap}
+  .who[hidden]{display:none}
+  .who b{font-weight:600}
+  .who a{color:var(--gray-500);text-decoration:none;font-weight:600;transition:color var(--dur-fast) var(--ease-out)}
+  .who a:hover{color:var(--accent)}
+  .who a:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
   .search{display:block;width:100%;border:0;border-bottom:1px solid var(--gray-300);background:transparent;padding:12px 0;font:inherit;font-size:18px;font-weight:500;color:var(--black);appearance:none;border-radius:0}
   .search::placeholder{color:var(--gray-500)}
   .search:focus-visible{outline:2px solid var(--focus-ring);outline-offset:4px}
@@ -40,72 +49,111 @@
   a.project:hover{padding-left:24px}
   a.project:hover .arr{transform:translateX(8px);color:var(--accent)}
   a.project:focus-visible{outline:2px solid var(--focus-ring);outline-offset:4px}
+  .project .p-main{display:flex;flex-direction:column;min-width:0}
   .project h2{font-size:clamp(28px,5vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.12}
+  .project small{font-size:12.5px;font-weight:500;color:var(--gray-500);margin-top:2px}
   .project .arr{font-size:18px;color:var(--gray-500);transition:transform var(--dur-base) var(--ease-out),color var(--dur-fast) var(--ease-out)}
-  .noresults{padding:26px 0;border-top:1px solid var(--gray-300);border-bottom:1px solid var(--gray-300);font-size:15px;color:var(--gray-500)}
-  .noresults[hidden]{display:none}
+  .noresults,.empty{padding:26px 0;border-top:1px solid var(--gray-300);border-bottom:1px solid var(--gray-300);font-size:15px;color:var(--gray-500)}
+  .noresults[hidden],.empty[hidden]{display:none}
   @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
   <main class="wrap">
     <div class="list">
-      <div class="brand" aria-label="Webkit.Studio">
-        <svg viewBox="0 0 432 108" aria-hidden="true" focusable="false"><path d="M0 0H108V108H0Z"></path><path d="M108 0C108 59.65 156.35 108 216 108L216 0Z"></path><path d="M216 0C216 59.65 264.35 108 324 108L324 0Z"></path><path d="M324 0C324 59.65 372.35 108 432 108L432 0Z"></path></svg>
-        <b>WEBKIT.STUDIO</b>
+      <div class="top">
+        <div class="brand" aria-label="Webkit.Studio">
+          <svg viewBox="0 0 432 108" aria-hidden="true" focusable="false"><path d="M0 0H108V108H0Z"></path><path d="M108 0C108 59.65 156.35 108 216 108L216 0Z"></path><path d="M216 0C216 59.65 264.35 108 324 108L324 0Z"></path><path d="M324 0C324 59.65 372.35 108 432 108L432 0Z"></path></svg>
+          <b>WEBKIT.STUDIO</b>
+        </div>
+        <div class="who" data-auth hidden><b data-auth-name></b><a href="#" data-auth-signout>Odhlásit</a></div>
       </div>
       <input class="search" id="search" type="text" placeholder="Hledat klienta…" aria-label="Hledat klienta" autocomplete="off">
       <div class="kicker"><span class="dot" aria-hidden="true"></span><span class="label">Pracovní návrhy</span></div>
-      <a class="project" href="/anse/">
-        <h2>Anse</h2>
-        <span class="arr" aria-hidden="true">→</span>
-      </a>
-      <a class="project" href="/arbosis/">
-        <h2>Arbosis</h2>
-        <span class="arr" aria-hidden="true">→</span>
-      </a>
-      <a class="project" href="/crr/">
-        <h2>Centrum pro regionální rozvoj</h2>
-        <span class="arr" aria-hidden="true">→</span>
-      </a>
-      <a class="project" href="/elektro-drapac/">
-        <h2>Elektro Drapač</h2>
-        <span class="arr" aria-hidden="true">→</span>
-      </a>
-      <a class="project" href="/mirek-slavicek/">
-        <h2>Mirek Slavíček</h2>
-        <span class="arr" aria-hidden="true">→</span>
-      </a>
-      <a class="project" href="/omedetou/">
-        <h2>Omedetou</h2>
-        <span class="arr" aria-hidden="true">→</span>
-      </a>
-      <a class="project" href="/vymysli/">
-        <h2>Vymysli.cz</h2>
-        <span class="arr" aria-hidden="true">→</span>
-      </a>
+      <div id="projects"></div>
       <p class="noresults" id="noresults" hidden>Nic nenalezeno.</p>
+      <p class="empty" id="empty" hidden>Zatím nemáte přiřazený žádný projekt.</p>
+      <p class="empty" id="loaderr" hidden>Seznam se nenačetl – zkuste to znovu.</p>
+      <section id="admin" hidden aria-label="Správa"></section>
     </div>
   </main>
   <script>
+    /* Seznam projektů z tabulky projects (RLS vrací jen povolené). */
     (function () {
+      var listEl = document.getElementById('projects');
       var input = document.getElementById('search');
-      var items = Array.prototype.slice.call(document.querySelectorAll('a.project'));
-      var empty = document.getElementById('noresults');
+      var empty = document.getElementById('empty');
+      var loaderr = document.getElementById('loaderr');
+      var noresults = document.getElementById('noresults');
+
       function norm(s) {
         return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       }
-      input.addEventListener('input', function () {
+
+      function applyFilter() {
         var q = norm(input.value.trim());
+        var items = Array.prototype.slice.call(listEl.querySelectorAll('a.project'));
         var shown = 0;
         items.forEach(function (item) {
           var hit = !q || norm(item.textContent).indexOf(q) > -1;
           item.style.display = hit ? '' : 'none';
           if (hit) shown++;
         });
-        empty.hidden = shown > 0;
-      });
+        noresults.hidden = !items.length || shown > 0;
+      }
+
+      function render(rows) {
+        listEl.textContent = '';
+        rows.forEach(function (p) {
+          var a = document.createElement('a');
+          a.className = 'project';
+          a.href = '/' + encodeURIComponent(p.slug) + '/';
+          var main = document.createElement('span');
+          main.className = 'p-main';
+          var h2 = document.createElement('h2');
+          h2.textContent = p.name;
+          main.appendChild(h2);
+          if (p.subtitle) {
+            var sub = document.createElement('small');
+            sub.textContent = p.subtitle;
+            main.appendChild(sub);
+          }
+          var arr = document.createElement('span');
+          arr.className = 'arr';
+          arr.setAttribute('aria-hidden', 'true');
+          arr.textContent = '→';
+          a.appendChild(main);
+          a.appendChild(arr);
+          listEl.appendChild(a);
+        });
+        empty.hidden = rows.length > 0;
+        applyFilter();
+      }
+
+      function load() {
+        var cfg = window.DRAFT_CONFIG || {};
+        if (!cfg.SUPABASE_URL || !window.draftAuth) return;
+        window.draftAuth.fetch(String(cfg.SUPABASE_URL).replace(/\/+$/, '') +
+          '/rest/v1/projects?select=slug,name,subtitle,sort&order=sort.asc,name.asc')
+          .then(function (res) { if (!res.ok) throw new Error('rest'); return res.json(); })
+          .then(function (rows) {
+            loaderr.hidden = true;
+            render(rows);
+          })
+          .catch(function () {
+            loaderr.hidden = false;
+            empty.hidden = true;
+          });
+      }
+
+      /* admin.js po změnách v tabulce projects seznam obnoví */
+      window.draftProjectsReload = load;
+
+      input.addEventListener('input', applyFilter);
+      if (window.draftUser) load();
+      else document.addEventListener('draft:user', load, { once: true });
     })();
   </script>
+  <script src="/assets/admin.js"></script>
 </body>
 </html>
