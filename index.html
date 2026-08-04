@@ -31,6 +31,11 @@
   a.project:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
   .project h2{font-size:clamp(26px,5vw,36px);font-weight:600;letter-spacing:-.01em}
   .project small{font-size:13px;color:var(--mut);font-weight:500;white-space:nowrap}
+  .search{display:block;width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;padding:10px 0 12px;font:inherit;font-size:17px;color:var(--ink);margin-bottom:20px}
+  .search::placeholder{color:var(--mut)}
+  .search:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
+  .noresults{padding:26px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:15px;color:var(--mut)}
+  .noresults[hidden]{display:none}
   footer{padding:32px 0 40px;font-size:12px;color:var(--mut)}
   @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
@@ -45,12 +50,34 @@
   <main class="wrap">
     <div class="list">
       <p class="eyebrow">Pracovní návrhy</p>
+      <input class="search" id="search" type="text" placeholder="Hledat klienta…" aria-label="Hledat klienta" autocomplete="off">
       <a class="project" href="/arbosis/">
         <h2>Arbosis</h2>
         <small>jednostránkový web</small>
       </a>
+      <p class="noresults" id="noresults" hidden>Nic nenalezeno.</p>
     </div>
   </main>
   <footer class="wrap">Interní prostředí pro sdílení návrhů. Obsah není určený ke zveřejnění.</footer>
+  <script>
+    (function () {
+      var input = document.getElementById('search');
+      var items = Array.prototype.slice.call(document.querySelectorAll('a.project'));
+      var empty = document.getElementById('noresults');
+      function norm(s) {
+        return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      }
+      input.addEventListener('input', function () {
+        var q = norm(input.value.trim());
+        var shown = 0;
+        items.forEach(function (item) {
+          var hit = !q || norm(item.textContent).indexOf(q) > -1;
+          item.style.display = hit ? '' : 'none';
+          if (hit) shown++;
+        });
+        empty.hidden = shown > 0;
+      });
+    })();
+  </script>
 </body>
 </html>
