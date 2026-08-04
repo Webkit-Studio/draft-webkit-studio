@@ -17,6 +17,18 @@
  * z druhého pohledu přejde na druhý viewer s kotvou #c=<id>. Komentář ze
  * sekce, která už v návrhu není, pin nemá a panel to u něj poznamená.
  * Mazání neexistuje, vlákno se uklízí přes „Vyřešeno".
+ *
+ * Fáze B:
+ * – filtry (stav / zobrazení / autor) nad seznamem, kombinují se, drží se
+ *   v localStorage per projekt ("draft-filters-<projekt>") a platí i pro
+ *   piny; počítadlo v liště je vždy počet nevyřešených,
+ * – nepřečtené: localStorage "seen-<projekt>-<verze>" = čas posledního
+ *   otevření panelu; novější cizí komentáře mají tečku u jména a lišta
+ *   ukazuje „Komentáře (N · M nových)", otevřením panelu se M nuluje,
+ * – trvalé odkazy: #c=<id> po přihlášení otevře panel, odscrolluje na
+ *   komentář i pin a pulzne (u vyřešených dočasně povolí filtr stavu);
+ *   „Kopírovat odkaz" u komentáře dá plnou URL do schránky,
+ * – „Export" (jen role admin) stáhne <projekt>-<verze>-komentare.md.
  */
 (function () {
   'use strict';
@@ -88,10 +100,34 @@
     'color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
     '.cadd:hover,.cadd[aria-pressed="true"]{background:var(--accent,#ff4d00);color:var(--accent-ink,#000)}',
     '.cadd:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
-    '.ctoggle{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;',
-    'color:var(--gray-500,#6f6f6f);cursor:pointer}',
-    '.ctoggle input{width:16px;height:16px;margin:0;accent-color:var(--black,#000)}',
-    '.ctoggle input:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
+    '.ctools-row{display:flex;gap:8px}',
+    '.ctools-row .cadd{flex:1}',
+    '.cexport{height:44px;padding:0 16px;background:transparent;border:1px solid var(--black,#000);border-radius:0;',
+    'color:var(--black,#000);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;',
+    'transition:color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1)),',
+    'border-color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
+    '.cexport:hover{color:var(--accent,#ff4d00);border-color:var(--accent,#ff4d00)}',
+    '.cexport:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
+    '.cexport[hidden]{display:none}',
+    /* filtry */
+    '.cfilters{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 20px;',
+    'border-bottom:1px solid var(--gray-300,#e2e2e2)}',
+    '.cfgroup{display:inline-flex;border:1px solid var(--gray-300,#e2e2e2)}',
+    '.cfbtn{padding:6px 10px;border:0;border-radius:0;background:transparent;color:var(--gray-500,#6f6f6f);',
+    'font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;',
+    'transition:color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
+    '.cfbtn:hover{color:var(--accent,#ff4d00)}',
+    '.cfbtn[aria-pressed="true"]{background:var(--black,#000);color:var(--white,#fff)}',
+    '.cfbtn:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:-2px}',
+    '.cfsel{height:30px;max-width:150px;padding:0 8px;border:1px solid var(--gray-300,#e2e2e2);border-radius:0;',
+    'background:var(--white,#fff);color:var(--black,#000);font-family:inherit;font-size:12px;font-weight:600}',
+    '.cfsel:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
+    /* nepřečtené + odkazy */
+    '.cnew{display:inline-block;flex:none;width:6px;height:6px;background:var(--accent,#ff4d00)}',
+    '.ccopy{font-weight:600;color:var(--gray-500,#6f6f6f);text-decoration:none;cursor:pointer;',
+    'transition:color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
+    '.ccopy:hover{color:var(--accent,#ff4d00)}',
+    '.ccopy:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
     '.cnote{padding:10px 20px;font-size:12.5px;font-weight:600;color:var(--accent,#ff4d00);',
     'border-bottom:1px solid var(--gray-300,#e2e2e2)}',
     '.cnote[hidden]{display:none}',
@@ -178,7 +214,6 @@
   var sectionOrder = [];    /* labely v pořadí dokumentu */
   var items = [];           /* všechny komentáře projektu+verze (oba pohledy) */
   var numbers = {};         /* id kořene → číslo pinu */
-  var showResolved = false;
   var panelOpen = false;
   var picking = false;
   var draft = null;         /* {section,x,y} při otevřeném composeru */
@@ -189,9 +224,70 @@
   var narrow = window.matchMedia && window.matchMedia('(max-width: 560px)');
 
   var barBtn, barCount, pinsLayer, catchLayer, panel, listEl, countEl, noteEl,
-      addBtn, toggleInput, comp, compText, compErr;
+      addBtn, exportBtn, authorSel, filtersEl, comp, compText, compErr;
   var pinEls = {};          /* id → element pinu */
   var draftPinEl = null;
+
+  /* ---------- filtry a nepřečtené ---------- */
+
+  var FILTER_KEY = 'draft-filters-' + PROJECT;
+  var SEEN_KEY = 'seen-' + PROJECT + '-' + VERSION;
+
+  /* stav filtrů; deep link na skrytý komentář je dočasně povolí bez uložení */
+  var filters = loadFilters();
+  var seenAtLoad = loadSeen();  /* tečky drží stav z načtení stránky */
+  var seenLive = seenAtLoad;    /* „M nových" se nuluje otevřením panelu */
+
+  function loadFilters() {
+    var def = { state: 'open', view: 'all', author: '' };
+    try {
+      var raw = localStorage.getItem(FILTER_KEY);
+      if (!raw) return def;
+      var f = JSON.parse(raw);
+      if (['open', 'resolved', 'all'].indexOf(f.state) < 0) f.state = def.state;
+      if (['all', 'desktop', 'mobile'].indexOf(f.view) < 0) f.view = def.view;
+      if (typeof f.author !== 'string') f.author = def.author;
+      return f;
+    } catch (e) { return def; }
+  }
+  function saveFilters() {
+    try { localStorage.setItem(FILTER_KEY, JSON.stringify(filters)); } catch (e) { /* nevadí */ }
+  }
+  function loadSeen() {
+    try { return parseInt(localStorage.getItem(SEEN_KEY), 10) || 0; } catch (e) { return 0; }
+  }
+  function storeSeen(ts) {
+    seenLive = ts;
+    try { localStorage.setItem(SEEN_KEY, String(ts)); } catch (e) { /* nevadí */ }
+  }
+
+  function passes(c) {
+    if (filters.state === 'open' && c.resolved) return false;
+    if (filters.state === 'resolved' && !c.resolved) return false;
+    if (filters.view !== 'all' && c.view !== filters.view) return false;
+    if (filters.author && c.author_id !== filters.author) return false;
+    return true;
+  }
+
+  function isNew(c, since) {
+    if (c.pending) return false;
+    if (window.draftUser && c.author_id === window.draftUser.id) return false;
+    var t = Date.parse(c.created_at);
+    return isFinite(t) && t > since;
+  }
+  function newCount() {
+    return items.filter(function (c) { return isNew(c, seenLive); }).length;
+  }
+  function pluralNew(n) {
+    if (n === 1) return 'nový';
+    if (n >= 2 && n <= 4) return 'nové';
+    return 'nových';
+  }
+  function countLabel() {
+    var n = unresolvedCount();
+    var m = newCount();
+    return '(' + n + (m ? ' · ' + m + ' ' + pluralNew(m) : '') + ')';
+  }
 
   /* ---------- REST ---------- */
 
@@ -288,7 +384,7 @@
 
   function pinVisible(c) {
     if (c.view !== VIEW || c.parent_id) return false;
-    if (c.resolved && !showResolved) return false;
+    if (!passes(c)) return false;
     return !!sections[c.section];
   }
 
@@ -340,9 +436,9 @@
   function render() {
     sortItems();
     renumber();
-    var n = unresolvedCount();
-    barCount.textContent = '(' + n + ')';
-    countEl.textContent = '(' + n + ')';
+    refreshAuthors();
+    barCount.textContent = countLabel();
+    countEl.textContent = '(' + unresolvedCount() + ')';
     renderPins();
     renderList();
     updatePositions();
@@ -376,7 +472,154 @@
   }
 
   function visibleRoots() {
-    return roots().filter(function (c) { return showResolved || !c.resolved; });
+    return roots().filter(passes);
+  }
+
+  /* ---------- filtry: UI ---------- */
+
+  function filterGroup(key, label, options) {
+    var group = el('div', 'cfgroup');
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', label);
+    options.forEach(function (opt) {
+      var b = el('button', 'cfbtn', opt[1]);
+      b.type = 'button';
+      b.setAttribute('data-f', key);
+      b.setAttribute('data-v', opt[0]);
+      b.addEventListener('click', function () {
+        if (filters[key] === opt[0]) return;
+        filters[key] = opt[0];
+        saveFilters();
+        syncFilterUI();
+        render();
+      });
+      group.appendChild(b);
+    });
+    return group;
+  }
+
+  function syncFilterUI() {
+    if (!filtersEl) return;
+    var btns = filtersEl.querySelectorAll('.cfbtn');
+    for (var i = 0; i < btns.length; i++) {
+      var b = btns[i];
+      b.setAttribute('aria-pressed', String(filters[b.getAttribute('data-f')] === b.getAttribute('data-v')));
+    }
+    if (authorSel) authorSel.value = filters.author;
+  }
+
+  var lastAuthorsKey = null;
+  function refreshAuthors() {
+    if (!authorSel) return;
+    var known = {};
+    var authors = [];
+    items.forEach(function (c) {
+      if (c.author_id && !known[c.author_id]) {
+        known[c.author_id] = true;
+        authors.push({ id: c.author_id, name: c.author_name });
+      }
+    });
+    authors.sort(function (a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; });
+    var key = authors.map(function (a) { return a.id; }).join(',');
+    if (key === lastAuthorsKey) return;
+    lastAuthorsKey = key;
+    authorSel.textContent = '';
+    var optAll = document.createElement('option');
+    optAll.value = '';
+    optAll.textContent = 'Všichni';
+    authorSel.appendChild(optAll);
+    authors.forEach(function (a) {
+      var o = document.createElement('option');
+      o.value = a.id;
+      o.textContent = a.name;
+      authorSel.appendChild(o);
+    });
+    if (filters.author && !known[filters.author]) filters.author = '';
+    authorSel.value = filters.author;
+  }
+
+  /* ---------- trvalé odkazy a export ---------- */
+
+  function commentUrl(c) {
+    var file = c.view === 'desktop' ? 'desktop.html' : 'mobile.html';
+    return location.origin + location.pathname.replace(/[^/]*$/, '') + file + '#c=' + c.id;
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-1000px';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        if (document.execCommand('copy')) resolve(); else reject(new Error('copy'));
+      } catch (e) { reject(e); }
+      ta.remove();
+    });
+  }
+
+  function fmtAbs(iso) {
+    var d = new Date(iso);
+    if (!isFinite(d.getTime())) return '';
+    var min = d.getMinutes();
+    return d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear() +
+      ' ' + d.getHours() + ':' + (min < 10 ? '0' : '') + min;
+  }
+
+  function clientName() {
+    var tc = document.querySelector('.bar .title .tc');
+    return (tc && tc.textContent.trim()) || PROJECT;
+  }
+
+  /* Export je úplný záznam projektu+verze – filtry na něj nemají vliv. */
+  function buildMarkdown() {
+    var lines = [];
+    lines.push('# ' + clientName() + ' – ' + VERSION + ' – komentáře');
+    lines.push('');
+    lines.push('Export: ' + fmtAbs(new Date().toISOString()));
+    var all = roots();
+    var bySection = {};
+    var seq = [];
+    all.forEach(function (c) {
+      if (!bySection[c.section]) { bySection[c.section] = []; seq.push(c.section); }
+      bySection[c.section].push(c);
+    });
+    var ordered = sectionOrder.filter(function (l) { return bySection[l]; })
+      .concat(seq.filter(function (l) { return sectionOrder.indexOf(l) < 0; }));
+    ordered.forEach(function (label) {
+      lines.push('');
+      lines.push('## ' + label);
+      bySection[label].forEach(function (c) {
+        lines.push('');
+        lines.push('**' + (numbers[c.id] || '–') + '. ' + c.author_name + '** – ' + fmtAbs(c.created_at) +
+          ' – ' + (VIEW_LABELS[c.view] || c.view) + ' – ' + (c.resolved ? 'vyřešený' : 'otevřený'));
+        lines.push('');
+        c.body.split('\n').forEach(function (ln) { lines.push(ln); });
+        replies(c.id).forEach(function (r) {
+          lines.push('');
+          lines.push('  - **' + r.author_name + '** – ' + fmtAbs(r.created_at));
+          r.body.split('\n').forEach(function (ln) { lines.push('    ' + ln); });
+        });
+      });
+    });
+    return lines.join('\n') + '\n';
+  }
+
+  function downloadExport() {
+    var blob = new Blob([buildMarkdown()], { type: 'text/markdown;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = PROJECT + '-' + VERSION + '-komentare.md';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
   function groupList() {
@@ -441,6 +684,11 @@
     var main = el('div', 'cmain');
     var meta = el('div', 'cmeta');
     meta.appendChild(el('b', null, c.author_name));
+    if (isNew(c, seenAtLoad)) {
+      var dot = el('span', 'cnew', '');
+      dot.setAttribute('aria-hidden', 'true');
+      meta.appendChild(dot);
+    }
     meta.appendChild(el('span', 'ctime', c.pending ? 'právě teď' : relTime(c.created_at)));
     meta.appendChild(el('span', 'ctag', VIEW_LABELS[c.view] || c.view));
     main.appendChild(meta);
@@ -462,6 +710,12 @@
       reply.setAttribute('data-reply', c.id);
       act.appendChild(reply);
     }
+    if (!c.pending) {
+      var copyA = el('a', 'ccopy', 'Kopírovat odkaz');
+      copyA.href = '#';
+      copyA.setAttribute('data-copy', c.id);
+      act.appendChild(copyA);
+    }
     main.appendChild(act);
 
     if (c.resolved) {
@@ -475,9 +729,22 @@
           var rep = el('div', 'crep' + (kid.pending ? ' cpending' : ''));
           var rmeta = el('div', 'cmeta');
           rmeta.appendChild(el('b', null, kid.author_name));
+          if (isNew(kid, seenAtLoad)) {
+            var rdot = el('span', 'cnew', '');
+            rdot.setAttribute('aria-hidden', 'true');
+            rmeta.appendChild(rdot);
+          }
           rmeta.appendChild(el('span', 'ctime', kid.pending ? 'právě teď' : relTime(kid.created_at)));
           rep.appendChild(rmeta);
           rep.appendChild(el('div', 'ctext', kid.body));
+          if (!kid.pending) {
+            var rAct = el('div', 'cact');
+            var rCopy = el('a', 'ccopy', 'Kopírovat odkaz');
+            rCopy.href = '#';
+            rCopy.setAttribute('data-copy', kid.id);
+            rAct.appendChild(rCopy);
+            rep.appendChild(rAct);
+          }
           reps.appendChild(rep);
         }
         main.appendChild(reps);
@@ -527,6 +794,8 @@
     barBtn.setAttribute('aria-expanded', 'true');
     if (!narrow.matches) document.body.classList.add('c-open');
     window.dispatchEvent(new Event('resize'));
+    /* návštěva panelu = přečteno; tečky drží stav z načtení stránky */
+    storeSeen(Date.now());
     return refresh();
   }
 
@@ -780,17 +1049,29 @@
     panel.appendChild(head);
 
     var tools = el('div', 'cpanel-tools');
+    var toolsRow = el('div', 'ctools-row');
     addBtn = el('button', 'cadd', 'Přidat komentář');
     addBtn.type = 'button';
     addBtn.setAttribute('aria-pressed', 'false');
-    tools.appendChild(addBtn);
-    var toggle = el('label', 'ctoggle');
-    toggleInput = document.createElement('input');
-    toggleInput.type = 'checkbox';
-    toggle.appendChild(toggleInput);
-    toggle.appendChild(document.createTextNode(' Zobrazit vyřešené'));
-    tools.appendChild(toggle);
+    toolsRow.appendChild(addBtn);
+    exportBtn = el('button', 'cexport', 'Export');
+    exportBtn.type = 'button';
+    exportBtn.hidden = !(window.draftUser && window.draftUser.role === 'admin');
+    toolsRow.appendChild(exportBtn);
+    tools.appendChild(toolsRow);
     panel.appendChild(tools);
+
+    filtersEl = el('div', 'cfilters');
+    filtersEl.appendChild(filterGroup('state', 'Stav',
+      [['open', 'Otevřené'], ['resolved', 'Vyřešené'], ['all', 'Vše']]));
+    filtersEl.appendChild(filterGroup('view', 'Zobrazení',
+      [['all', 'Vše'], ['desktop', 'Počítač'], ['mobile', 'Mobil']]));
+    authorSel = document.createElement('select');
+    authorSel.className = 'cfsel';
+    authorSel.setAttribute('aria-label', 'Autor');
+    filtersEl.appendChild(authorSel);
+    panel.appendChild(filtersEl);
+    syncFilterUI();
 
     noteEl = el('p', 'cnote');
     noteEl.hidden = true;
@@ -829,10 +1110,12 @@
       if (narrow.matches) closePanel();
       enterPick();
     });
-    toggleInput.addEventListener('change', function () {
-      showResolved = toggleInput.checked;
+    authorSel.addEventListener('change', function () {
+      filters.author = authorSel.value;
+      saveFilters();
       render();
     });
+    exportBtn.addEventListener('click', downloadExport);
     compSave.addEventListener('click', submitRoot);
     compCancel.addEventListener('click', function () { closeComposer(); });
 
@@ -871,6 +1154,17 @@
     listEl.addEventListener('click', function (e) {
       var t = e.target;
       if (t.closest('.cform') || t.closest('textarea')) return;
+      var copy = t.closest('[data-copy]');
+      if (copy) {
+        e.preventDefault();
+        var cc = byId(copy.getAttribute('data-copy'));
+        if (!cc) return;
+        copyText(commentUrl(cc)).then(function () {
+          copy.textContent = 'Zkopírováno';
+          setTimeout(function () { copy.textContent = 'Kopírovat odkaz'; }, 1500);
+        }, function () { /* schránka nedostupná – text se nemění */ });
+        return;
+      }
       var reply = t.closest('[data-reply]');
       if (reply) {
         e.preventDefault();
@@ -916,6 +1210,29 @@
 
   var lastPoint = { x: 0, y: 0 };
 
+  /* Trvalý odkaz #c=<id>: otevři panel, odscrolluj na vlákno i pin a pulzni.
+     Funguje při načtení i při změně hashe v otevřeném vieweru. */
+  function openFromHash() {
+    var m = /(?:^|[#&])c=([\w-]+)/.exec(location.hash);
+    if (!m) return;
+    var c = byId(m[1]);
+    if (!c) return;
+    var rootC = c.parent_id ? byId(c.parent_id) || c : c;
+    /* dočasně (bez uložení) povol filtry tak, aby byl cíl vidět */
+    if (!passes(rootC)) {
+      if ((filters.state === 'open' && rootC.resolved) ||
+          (filters.state === 'resolved' && !rootC.resolved)) filters.state = 'all';
+      if (filters.view !== 'all' && filters.view !== rootC.view) filters.view = 'all';
+      if (filters.author && filters.author !== rootC.author_id) filters.author = '';
+      syncFilterUI();
+      render();
+    }
+    openPanel().then(function () {
+      focusItem(rootC.id);
+      if (rootC.view === VIEW && sections[rootC.section] && !narrow.matches) focusPin(rootC);
+    });
+  }
+
   /* ---------- start ---------- */
 
   function start() {
@@ -924,16 +1241,8 @@
     loadAll().then(function (rows) {
       items = rows;
       render();
-      var m = /(?:^|[#&])c=([\w-]+)/.exec(location.hash);
-      if (m) {
-        var c = byId(m[1]);
-        if (c) {
-          var rootC = c.parent_id ? byId(c.parent_id) || c : c;
-          openPanel();
-          focusItem(rootC.id);
-          if (rootC.view === VIEW && sections[rootC.section] && !narrow.matches) focusPin(rootC);
-        }
-      }
+      openFromHash();
+      window.addEventListener('hashchange', openFromHash);
     }, function () {
       barBtn.hidden = false;
       noteEl.textContent = 'Komentáře se nenačetly – zkuste to znovu.';

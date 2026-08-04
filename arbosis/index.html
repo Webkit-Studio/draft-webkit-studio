@@ -78,6 +78,7 @@
         <div class="v-name">
           Wireframe – kostra stránky
           <small>4. 8. 2026</small>
+          <small class="vc" data-vc="v1" hidden></small>
         </div>
         <span class="tag">v1.0</span>
         <div class="btns">
@@ -104,6 +105,40 @@
       window.addEventListener('load', fit);
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
       fit();
+    })();
+  </script>
+  <script>
+    /* Štítek „N komentářů (M otevřených)" u verzí – jeden GET po přihlášení. */
+    (function () {
+      function plural(n, one, few, many) {
+        return n + ' ' + (n === 1 ? one : n >= 2 && n <= 4 ? few : many);
+      }
+      function badges() {
+        var cfg = window.DRAFT_CONFIG || {};
+        if (!cfg.SUPABASE_URL || !window.draftAuth) return;
+        window.draftAuth.fetch(String(cfg.SUPABASE_URL).replace(/\/+$/, '') +
+          '/rest/v1/comments?select=version,resolved,parent_id&project=eq.arbosis')
+          .then(function (res) { if (!res.ok) throw new Error('rest'); return res.json(); })
+          .then(function (rows) {
+            var els = document.querySelectorAll('[data-vc]');
+            for (var i = 0; i < els.length; i++) {
+              var v = els[i].getAttribute('data-vc');
+              var total = 0, open = 0;
+              for (var j = 0; j < rows.length; j++) {
+                if (rows[j].version !== v || rows[j].parent_id) continue;
+                total++;
+                if (!rows[j].resolved) open++;
+              }
+              if (!total) { els[i].hidden = true; continue; }
+              els[i].textContent = plural(total, 'komentář', 'komentáře', 'komentářů') +
+                ' (' + plural(open, 'otevřený', 'otevřené', 'otevřených') + ')';
+              els[i].hidden = false;
+            }
+          })
+          .catch(function () { /* štítek je jen informativní */ });
+      }
+      if (window.draftUser) badges();
+      else document.addEventListener('draft:user', badges, { once: true });
     })();
   </script>
 </body>
