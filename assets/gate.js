@@ -22,9 +22,9 @@
 (function () {
   'use strict';
 
-  /* Konfigurace klientů: slug → SHA-256 hash hesla (hex, lowercase). */
+  /* Konfigurace klientů: slug → jméno (zobrazí se na bráně) + SHA-256 hash hesla (hex, lowercase). */
   var CLIENTS = {
-    arbosis: { hash: '030eeacca7a881bcd4c225f4848babafbdd6f6fe43a05b2ec7268bf0fb1a4028' }
+    arbosis: { name: 'Arbosis', hash: '030eeacca7a881bcd4c225f4848babafbdd6f6fe43a05b2ec7268bf0fb1a4028' }
   };
 
   var script = document.currentScript;
@@ -57,9 +57,10 @@
     '.wsg,.wsg *{margin:0;padding:0;box-sizing:border-box}',
     '.wsg{padding:var(--g-space-5)}',
     '.wsg-box{width:100%;max-width:360px}',
-    '.wsg-brand{display:flex;align-items:center;gap:var(--g-space-3);margin-bottom:var(--g-space-6)}',
+    '.wsg-brand{display:flex;align-items:center;gap:var(--g-space-3);margin-bottom:var(--g-space-4)}',
     '.wsg-symbol{display:block;height:24px;width:auto;fill:var(--g-black)}',
     '.wsg-word{font-size:13px;font-weight:700;letter-spacing:0.02em}',
+    '.wsg-client{font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1.12;margin-bottom:var(--g-space-6)}',
     '.wsg-form{display:flex;gap:var(--g-space-2);flex-wrap:wrap}',
     '.wsg-input{flex:1;min-width:180px;height:48px;padding:0 var(--g-space-4);',
     'border:var(--g-border-w) solid var(--g-gray-300);border-radius:0;background:var(--g-white);',
@@ -113,10 +114,11 @@
     overlay.className = 'wsg';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Vstup pro klienty – zadejte heslo');
+    overlay.setAttribute('aria-label', (client.name || slug) + ' – zadejte heslo');
     overlay.innerHTML =
       '<div class="wsg-box">' +
         '<div class="wsg-brand">' + SYMBOL + '<b class="wsg-word">WEBKIT.STUDIO</b></div>' +
+        '<p class="wsg-client"></p>' +
         '<form class="wsg-form" novalidate>' +
           '<input class="wsg-input" type="password" name="password" placeholder="Heslo"' +
           ' aria-label="Heslo" autocomplete="current-password" autofocus>' +
@@ -125,6 +127,7 @@
         '<p class="wsg-err" role="alert" hidden>Nesprávné heslo.</p>' +
       '</div>' +
       '<div class="wsg-blocks" aria-hidden="true"><i></i><i></i><i></i></div>';
+    overlay.querySelector('.wsg-client').textContent = client.name || slug;
     document.body.appendChild(overlay);
 
     var prevOverflow = root.style.overflow;
