@@ -10,30 +10,39 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--ink:#141414;--bg:#2A2A28;--bar:#1C1C1B;--paper:#F7F6F4;--mut:rgba(247,246,244,.6)}
+  /* Tokeny design systému Webkit.Studio (/design/webkit/tokens) */
+  :root{--black:#000000;--white:#ffffff;--gray-100:#f4f4f4;--gray-300:#e2e2e2;--gray-500:#6f6f6f;--accent:#ff4d00;--accent-ink:#000000;--focus-ring:var(--accent);--inverse-mut:rgba(255,255,255,.62);--inverse-line:rgba(255,255,255,.24);--font-sans:'Urbanist','Helvetica Neue',Arial,sans-serif;--ease-out:cubic-bezier(0.2,0,0,1);--dur-fast:120ms}
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Urbanist',sans-serif;background:var(--bg);min-height:100vh}
-  .bar{position:sticky;top:0;z-index:20;background:var(--bar);color:var(--paper);display:flex;align-items:center;gap:16px;padding:0 20px;height:52px}
-  .bar a.back{color:var(--paper);text-decoration:none;font-size:13px;font-weight:600;opacity:.75}
-  .bar a.back:hover{opacity:1}
-  .bar .title{font-size:13px;font-weight:600;letter-spacing:.02em;margin:0 auto}
-  .bar .title small{color:var(--mut);font-weight:500;margin-left:8px}
-  .switch{display:flex;gap:2px;background:rgba(247,246,244,.12);border-radius:99px;padding:2px}
-  .switch a{font-size:12.5px;font-weight:600;text-decoration:none;color:var(--paper);padding:7px 14px;border-radius:99px}
-  .switch a[aria-current="true"]{background:var(--paper);color:var(--ink)}
+  body{font-family:var(--font-sans);background:var(--gray-100);min-height:100vh}
+  ::selection{background:var(--accent);color:var(--accent-ink)}
+  .bar{position:sticky;top:0;z-index:20;background:var(--black);color:var(--white);display:flex;align-items:center;gap:16px;padding:0 20px;height:52px}
+  .bar a.back{color:var(--inverse-mut);text-decoration:none;font-size:13px;font-weight:600;transition:color var(--dur-fast) var(--ease-out)}
+  .bar a.back:hover{color:var(--accent)}
+  .bar a.back:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+  .bar .title{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;letter-spacing:.02em;margin:0 auto;white-space:nowrap}
+  .bar .title .tx{color:var(--accent)}
+  .bar .title .tc{text-transform:uppercase}
+  .bar .title small{color:var(--inverse-mut);font-weight:500;font-size:12px;margin-left:8px}
+  .switch{display:flex;border:1px solid var(--inverse-line)}
+  .switch a{font-size:12.5px;font-weight:600;text-decoration:none;color:var(--white);padding:7px 14px;transition:color var(--dur-fast) var(--ease-out)}
+  .switch a:hover{color:var(--accent)}
+  .switch a[aria-current="true"]{background:var(--white);color:var(--black)}
+  .switch a[aria-current="true"]:hover{color:var(--black)}
+  .switch a:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
   .stage{display:flex;justify-content:center;padding:28px 20px 56px}
   .shell{width:375px}
-  .frame{width:375px;background:#fff;border-radius:14px;box-shadow:0 12px 48px rgba(0,0,0,.35);font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#333}
+  .frame{width:375px;background:var(--white);border:1px solid var(--gray-300);font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#333}
   .frame a{text-decoration:none}
   #stickyCta{opacity:0;pointer-events:none;transition:opacity .2s}
   #stickyCta.on{opacity:1;pointer-events:auto}
-  @media (max-width:700px){.bar .title small{display:none}}
+  @media (max-width:760px){.bar .title small{display:none}}
+  @media (max-width:560px){.bar .title .tw,.bar .title .tx{display:none}}
 </style>
 </head>
 <body>
   <div class="bar">
     <a class="back" href="/arbosis/">← Zpět</a>
-    <span class="title">Arbosis – wireframe<small>v1 · zobrazení pro mobil (375 px)</small></span>
+    <span class="title"><span class="tw">WEBKIT.STUDIO</span><span class="tx" aria-hidden="true">x</span><span class="tc">Arbosis</span><small>wireframe v1 · mobil (375 px)</small></span>
     <nav class="switch" aria-label="Přepnout zobrazení">
       <a href="/arbosis/v1/desktop.html">Počítač</a>
       <a href="/arbosis/v1/mobile.html" aria-current="true">Mobil</a>
@@ -249,7 +258,7 @@
           <div style="display:flex;gap:12px;font-size:12px;color:#9a9a9a"><span>[firemní údaje]</span><span>·</span><span>[IČ]</span></div>
         </div>
 
-        <div id="stickyCta" data-screen-label="M10 Sticky CTA" style="position:sticky;bottom:0;background:#fff;border-top:1px solid #e2e2e2;padding:10px 16px;border-radius:0 0 14px 14px">
+        <div id="stickyCta" data-screen-label="M10 Sticky CTA" style="position:sticky;bottom:0;background:#fff;border-top:1px solid #e2e2e2;padding:10px 16px">
           <a href="#kontakt" style="display:flex;align-items:center;justify-content:center;height:48px;background:#3a3a3a;color:#fff;font-size:15px;font-weight:600;border-radius:3px">[Poptat zahradu]</a>
         </div>
 

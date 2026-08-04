@@ -24,7 +24,13 @@
 
   /* Konfigurace klientů: slug → jméno (zobrazí se na bráně) + SHA-256 hash hesla (hex, lowercase). */
   var CLIENTS = {
-    arbosis: { name: 'Arbosis', hash: '030eeacca7a881bcd4c225f4848babafbdd6f6fe43a05b2ec7268bf0fb1a4028' }
+    arbosis: { name: 'Arbosis', hash: '030eeacca7a881bcd4c225f4848babafbdd6f6fe43a05b2ec7268bf0fb1a4028' },
+    'mirek-slavicek': { name: 'Mirek Slavíček', hash: '7ca60307deda69025d03f0ee57c253bc1381fba40cb506f978e73765426c1afc' },
+    omedetou: { name: 'Omedetou', hash: '75d3b99048f26eed73f91fe09cad946e7072f31fa93a7fdfdcf1ac65163ef207' },
+    vymysli: { name: 'Vymysli.cz', hash: '87179be252f768c77ed4213b52d18cf11dae2654b765d1f02f5468ab7be8e970' },
+    crr: { name: 'Centrum pro regionální rozvoj', hash: '5b84c8f92f08d239a8737469364042caa577fdfbb5f220c89dd2ce2469a71b36' },
+    'elektro-drapac': { name: 'Elektro Drapač', hash: '838afa7408dff058e784a460fd23d0101687614ff9ba3e836fa521cd86873735' },
+    anse: { name: 'Anse', hash: '896dce569c6f7d933a47a391958c30963319ab53c042603455750553f4430436' }
   };
 
   var script = document.currentScript;
@@ -57,10 +63,12 @@
     '.wsg,.wsg *{margin:0;padding:0;box-sizing:border-box}',
     '.wsg{padding:var(--g-space-5)}',
     '.wsg-box{width:100%;max-width:360px}',
-    '.wsg-brand{display:flex;align-items:center;gap:var(--g-space-3);margin-bottom:var(--g-space-4)}',
+    '.wsg-brand{display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-space-2) var(--g-space-3);margin-bottom:var(--g-space-6)}',
     '.wsg-symbol{display:block;height:24px;width:auto;fill:var(--g-black)}',
-    '.wsg-word{font-size:13px;font-weight:700;letter-spacing:0.02em}',
-    '.wsg-client{font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1.12;margin-bottom:var(--g-space-6)}',
+    '.wsg-word{font-size:13px;font-weight:700;letter-spacing:0.02em;white-space:nowrap}',
+    '.wsg-co{display:inline-flex;align-items:center;gap:var(--g-space-3);white-space:nowrap}',
+    '.wsg-x{font-size:13px;font-weight:700;color:var(--g-accent)}',
+    '.wsg-cname{font-size:13px;font-weight:700;letter-spacing:0.02em;text-transform:uppercase}',
     '.wsg-form{display:flex;gap:var(--g-space-2);flex-wrap:wrap}',
     '.wsg-input{flex:1;min-width:180px;height:48px;padding:0 var(--g-space-4);',
     'border:var(--g-border-w) solid var(--g-gray-300);border-radius:0;background:var(--g-white);',
@@ -117,8 +125,8 @@
     overlay.setAttribute('aria-label', (client.name || slug) + ' – zadejte heslo');
     overlay.innerHTML =
       '<div class="wsg-box">' +
-        '<div class="wsg-brand">' + SYMBOL + '<b class="wsg-word">WEBKIT.STUDIO</b></div>' +
-        '<p class="wsg-client"></p>' +
+        '<div class="wsg-brand">' + SYMBOL + '<b class="wsg-word">WEBKIT.STUDIO</b>' +
+          '<span class="wsg-co"><span class="wsg-x" aria-hidden="true">x</span><span class="wsg-cname"></span></span></div>' +
         '<form class="wsg-form" novalidate>' +
           '<input class="wsg-input" type="password" name="password" placeholder="Heslo"' +
           ' aria-label="Heslo" autocomplete="current-password" autofocus>' +
@@ -127,7 +135,7 @@
         '<p class="wsg-err" role="alert" hidden>Nesprávné heslo.</p>' +
       '</div>' +
       '<div class="wsg-blocks" aria-hidden="true"><i></i><i></i><i></i></div>';
-    overlay.querySelector('.wsg-client').textContent = client.name || slug;
+    overlay.querySelector('.wsg-cname').textContent = client.name || slug;
     document.body.appendChild(overlay);
 
     var prevOverflow = root.style.overflow;
