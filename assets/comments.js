@@ -14,11 +14,17 @@
  * (#frame, zmenšované transform: scale), takže vrstva pracuje nad ním bez
  * iframu; přepočet pozic řeší getBoundingClientRect při scrollu a resize.
  *
- * Panel ukazuje komentáře obou pohledů (počítač + mobil) pro projekt
- * a verzi; pin se kreslí jen pro aktuální pohled. Klik na komentář
- * z druhého pohledu přejde na druhý viewer s kotvou #c=<id>. Komentář ze
- * sekce, která už v návrhu není, pin nemá a panel to u něj poznamená.
- * Klient vlákno uklízí přes „Vyřešeno", mazat smí jen admin.
+ * Panel je vysoký přes celé okno a jeho hlava je v jedné řadě s lištou.
+ * Ukazuje komentáře obou pohledů (počítač + mobil) pro projekt a verzi;
+ * pin se kreslí jen pro aktuální pohled. Klik na komentář z druhého
+ * pohledu přejde na druhý viewer s kotvou #c=<id>. Komentář ze sekce,
+ * která už v návrhu není, pin nemá a panel to u něj poznamená. Seznam je
+ * jeden sloupec dělený na sekce plátna; název sekce drží u horní hrany,
+ * dokud ho nevystřídá další.
+ *
+ * Akce u komentáře jsou ikony s bublinou (data-tip, obsluha v gate.js):
+ * Vyřešeno (prázdný čtvereček, najetím naznačené zaškrtnutí), Odpovědět,
+ * Upravit (jen vlastní komentář), Kopírovat odkaz a Smazat (jen admin).
  *
  * Fáze B:
  * – filtry (stav / zobrazení / autor) nad seznamem, kombinují se, drží se
@@ -90,8 +96,8 @@
     '.ccatch{position:fixed;z-index:16;cursor:crosshair;display:none}',
     '.ccatch.on{display:block}',
     '.c-hl{outline:2px solid var(--accent,#ff4d00)!important;outline-offset:-2px!important}',
-    /* panel */
-    '.cpanel{position:fixed;top:52px;right:0;bottom:0;width:360px;z-index:18;',
+    /* panel – hlava je vysoká jako lišta a je s ní v jedné řadě */
+    '.cpanel{position:fixed;top:0;right:0;bottom:0;width:360px;z-index:21;',
     'background:var(--white,#fff);border-left:1px solid var(--gray-300,#e2e2e2);color:var(--black,#000);',
     'font-family:var(--font-sans,sans-serif);display:flex;flex-direction:column;',
     'transform:translateX(100%);visibility:hidden;',
@@ -99,7 +105,8 @@
     'visibility 0s linear var(--dur-base,200ms)}',
     '.cpanel.on{transform:none;visibility:visible;',
     'transition:transform var(--dur-base,200ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
-    '.cpanel-head{display:flex;align-items:center;gap:8px;padding:12px 20px;border-bottom:1px solid var(--gray-300,#e2e2e2)}',
+    '.cpanel-head{flex:none;display:flex;align-items:center;gap:8px;height:52px;padding:0 20px;',
+    'box-sizing:border-box;border-bottom:1px solid var(--gray-300,#e2e2e2)}',
     '.cpanel-head b{font-size:15px;font-weight:700}',
     '.cpanel-count{font-size:13px;font-weight:600;color:var(--gray-500,#6f6f6f)}',
     '.cpanel-x{margin-left:auto;width:32px;height:32px;border:0;border-radius:0;background:none;',
@@ -107,7 +114,8 @@
     'transition:color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
     '.cpanel-x:hover{color:var(--accent,#ff4d00)}',
     '.cpanel-x:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
-    '.cpanel-tools{padding:16px 20px;border-bottom:1px solid var(--gray-300,#e2e2e2);display:flex;flex-direction:column;gap:12px}',
+    '.cpanel-tools{flex:none;padding:12px 20px;border-bottom:1px solid var(--gray-300,#e2e2e2);',
+    'display:flex;flex-direction:column;gap:12px}',
     '.cadd{height:44px;border:0;border-radius:0;background:var(--black,#000);color:var(--white,#fff);',
     'font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;',
     'transition:background var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1)),',
@@ -124,7 +132,7 @@
     '.cexport:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
     '.cexport[hidden]{display:none}',
     /* filtry */
-    '.cfilters{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 20px;',
+    '.cfilters{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 20px;',
     'border-bottom:1px solid var(--gray-300,#e2e2e2)}',
     '.cfgroup{display:inline-flex;border:1px solid var(--gray-300,#e2e2e2)}',
     '.cfbtn{padding:6px 10px;border:0;border-radius:0;background:transparent;color:var(--gray-500,#6f6f6f);',
@@ -136,27 +144,21 @@
     '.cfsel{height:30px;max-width:150px;padding:0 8px;border:1px solid var(--gray-300,#e2e2e2);border-radius:0;',
     'background:var(--white,#fff);color:var(--black,#000);font-family:inherit;font-size:12px;font-weight:600}',
     '.cfsel:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
-    /* nepřečtené + odkazy */
+    /* nepřečtené */
     '.cnew{display:inline-block;flex:none;width:6px;height:6px;background:var(--accent,#ff4d00)}',
-    '.ccopy{font-weight:600;color:var(--gray-500,#6f6f6f);text-decoration:none;cursor:pointer;',
-    'transition:color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
-    '.ccopy:hover{color:var(--accent,#ff4d00)}',
-    '.ccopy:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
-    '.cdel{margin-left:auto;font-weight:600;color:var(--gray-500,#6f6f6f);text-decoration:none;cursor:pointer;',
-    'transition:color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
-    '.cdel:hover{color:var(--accent,#ff4d00)}',
-    '.cdel:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
-    '.cnote{padding:10px 20px;font-size:12.5px;font-weight:600;color:var(--accent,#ff4d00);',
+    '.cnote{flex:none;padding:10px 20px;font-size:12.5px;font-weight:600;color:var(--accent,#ff4d00);',
     'border-bottom:1px solid var(--gray-300,#e2e2e2)}',
     '.cnote[hidden]{display:none}',
-    /* seznam */
-    '.clist{flex:1;overflow-y:auto;padding-bottom:24px}',
+    /* seznam – jeden sloupec, nikdy se neroluje do boku */
+    '.clist{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-bottom:24px}',
     '.cempty{padding:26px 20px;font-size:14px;color:var(--gray-500,#6f6f6f)}',
-    '.cgroup{border-top:1px solid var(--gray-300,#e2e2e2)}',
-    '.cgroup:first-child{border-top:0}',
-    '.cgroup-h{padding:16px 20px 4px;font-size:11px;font-weight:600;letter-spacing:.08em;',
+    '.csec{display:block}',
+    /* název sekce drží u horní hrany, dokud ho nevystřídá další sekce */
+    '.csec-h{position:sticky;top:0;z-index:2;display:block;padding:10px 20px;',
+    'background:var(--white,#fff);border-bottom:1px solid var(--gray-300,#e2e2e2);',
+    'font-size:11px;font-weight:600;letter-spacing:.08em;line-height:1.3;',
     'text-transform:uppercase;color:var(--gray-500,#6f6f6f)}',
-    '.cgroup-dead{display:block;margin-top:2px;font-size:12.5px;font-weight:500;letter-spacing:0;',
+    '.csec-dead{display:block;margin-top:2px;font-size:12.5px;font-weight:500;letter-spacing:0;',
     'text-transform:none;color:var(--gray-500,#6f6f6f)}',
     '.citem{padding:12px 20px;display:flex;gap:12px;align-items:flex-start}',
     '.citem.clink{cursor:pointer}',
@@ -175,14 +177,23 @@
     'border:1px solid var(--black,#000);padding:2px 6px;white-space:nowrap}',
     '.citem.cdone .cmeta b,.citem.cdone .ctext{color:var(--gray-500,#6f6f6f)}',
     '.ctext{margin-top:4px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word}',
-    '.cact{display:flex;align-items:center;gap:16px;margin-top:8px;font-size:12.5px}',
-    '.cact label{display:flex;align-items:center;gap:6px;font-weight:600;color:var(--gray-500,#6f6f6f);cursor:pointer}',
-    '.cact input{width:14px;height:14px;margin:0;accent-color:var(--black,#000)}',
-    '.cact input:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
-    '.creply{font-weight:600;color:var(--gray-500,#6f6f6f);text-decoration:none;cursor:pointer;',
+    /* akce jsou ikony, popis nese bublina data-tip (gate.js) */
+    '.cact{display:flex;align-items:center;gap:2px;margin-top:6px;margin-left:-6px}',
+    '.cico{display:inline-flex;align-items:center;justify-content:center;flex:none;',
+    'width:28px;height:28px;padding:0;background:none;border:0;border-radius:0;',
+    'color:var(--gray-500,#6f6f6f);cursor:pointer;',
     'transition:color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
-    '.creply:hover{color:var(--accent,#ff4d00)}',
-    '.creply:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
+    '.cico:hover{color:var(--accent,#ff4d00)}',
+    '.cico:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:-2px}',
+    '.cico[disabled]{color:var(--gray-300,#e2e2e2);cursor:default}',
+    '.cicon{display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;',
+    'stroke-linecap:butt;stroke-linejoin:miter}',
+    /* prázdný čtvereček, po najetí naznačené zaškrtnutí, po vyřešení plné */
+    '.cres .ctick{opacity:0;transition:opacity var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
+    '.cres:hover .ctick{opacity:.4}',
+    '.cres[aria-checked="true"]{color:var(--black,#000)}',
+    '.cres[aria-checked="true"]:hover{color:var(--accent,#ff4d00)}',
+    '.cres[aria-checked="true"] .ctick{opacity:1}',
     '.creps{margin-top:10px;border-left:1px solid var(--gray-300,#e2e2e2);padding-left:14px;',
     'display:flex;flex-direction:column;gap:10px}',
     '.crepnote{margin-top:8px;font-size:12.5px;font-weight:500;color:var(--gray-500,#6f6f6f)}',
@@ -208,11 +219,24 @@
     '.cghost:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
     '.cerr{margin-top:8px;font-size:12.5px;font-weight:600;color:var(--accent,#ff4d00)}',
     '.cerr[hidden]{display:none}',
-    '.ccomp{position:fixed;z-index:19;width:300px;background:var(--white,#fff);',
+    '.ccomp{position:fixed;z-index:24;width:300px;background:var(--white,#fff);',
     'border:1px solid var(--black,#000);padding:12px;display:none}',
     '.ccomp.on{display:block}',
-    /* posun plátna při otevřeném panelu */
+    /* posun plátna při otevřeném panelu; lišta se zúží, tak z ní zmizí
+       popis verze a nic z ní nepřeteče pod panel */
     'body.c-open{padding-right:360px}',
+    'body.c-open .bar{overflow:hidden}',
+    'body.c-open .bar .title{min-width:0;overflow:hidden}',
+    'body.c-open .bar .title small{display:none}',
+    /* lišta se sbaluje podle své skutečné šířky, ne podle šířky okna –
+       zlomy vieweru (760/560/460) posunuté o šířku panelu */
+    '@media (max-width:1120px){body.c-open .bar .who b{display:none}}',
+    '@media (max-width:1000px){body.c-open .bar .who{display:none}}',
+    '@media (max-width:920px){',
+    'body.c-open .bar .title .tw,body.c-open .bar .title .tx{display:none}',
+    'body.c-open .cbtn .cbtn-t,body.c-open .cbadd .cbadd-l{display:none}',
+    '}',
+    '@media (max-width:820px){body.c-open .bar .title{display:none}}',
     '@media (max-width:560px){',
     '.cpanel{width:100%}',
     'body.c-open{padding-right:0}',
@@ -223,7 +247,8 @@
     '.ccomp{left:16px!important;right:16px;width:auto;top:auto!important;bottom:16px}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
-    '.cpanel,.cpin,.cbtn,.cbadd,.cadd,.cprim,.cghost,.cpanel-x,.creply{transition:none!important;animation:none!important}',
+    '.cpanel,.cpin,.cbtn,.cbadd,.cadd,.cprim,.cghost,.cpanel-x,.cico,.cres .ctick',
+    '{transition:none!important;animation:none!important}',
     '}'
   ].join('');
 
@@ -239,6 +264,8 @@
   var draft = null;         /* {section,x,y} při otevřeném composeru */
   var replyFor = null;      /* id kořene s otevřenou odpovědí */
   var replyText = '';
+  var editFor = null;       /* id vlastního komentáře v úpravě */
+  var editText = '';
   var tmpSeq = 0;
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
   var narrow = window.matchMedia && window.matchMedia('(max-width: 560px)');
@@ -285,12 +312,101 @@
     return !!(window.draftUser && window.draftUser.role === 'admin');
   }
 
+  function isMine(c) {
+    return !!(window.draftUser && c.author_id === window.draftUser.id);
+  }
+
+  /* ---------- ikony akcí ---------- */
+
+  var ICONS = {
+    /* prázdný čtvereček + zaškrtnutí, které se naznačí najetím */
+    resolve: '<rect x="4.5" y="4.5" width="15" height="15"/>' +
+      '<path class="ctick" d="M8 12.2 10.9 15.1 16.3 9.1"/>',
+    reply: '<path d="M9 5 4 10l5 5"/><path d="M4 10h8.5a6.5 6.5 0 0 1 6.5 6.5V19"/>',
+    edit: '<path d="M4 20v-4L16 4l4 4L8 20H4Z"/><path d="M14 6l4 4"/>',
+    link: '<path d="M10.5 13.5a4.5 4.5 0 0 0 6.4 0l2.6-2.6a4.5 4.5 0 0 0-6.4-6.4l-1.3 1.3"/>' +
+      '<path d="M13.5 10.5a4.5 4.5 0 0 0-6.4 0l-2.6 2.6a4.5 4.5 0 0 0 6.4 6.4l1.3-1.3"/>',
+    del: '<path d="M4.5 6.5h15"/><path d="M9.5 6.5V3.5h5v3"/><path d="M6.5 6.5V20.5h11V6.5"/>' +
+      '<path d="M10.5 10v7M13.5 10v7"/>'
+  };
+
+  /* Ikonové tlačítko akce; popis nese bublina data-tip (gate.js) i aria-label. */
+  function iconBtn(name, tip, extraClass) {
+    var b = el('button', 'cico' + (extraClass ? ' ' + extraClass : ''));
+    b.type = 'button';
+    b.setAttribute('data-tip', tip);
+    b.setAttribute('aria-label', tip);
+    b.innerHTML = '<svg class="cicon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+      ICONS[name] + '</svg>';
+    return b;
+  }
+
   /* „Smazat" se vykresluje jen adminovi; skutečnou kontrolu drží RLS. */
-  function deleteLink(id) {
-    var a = el('a', 'cdel', 'Smazat');
-    a.href = '#';
-    a.setAttribute('data-del', id);
-    return a;
+  function deleteBtn(id) {
+    var b = iconBtn('del', 'Smazat');
+    b.setAttribute('data-del', id);
+    return b;
+  }
+
+  /* Řada akcí pod komentářem: Vyřešeno (jen kořen), Odpovědět (jen otevřený
+     kořen), Upravit (vlastní), Kopírovat odkaz, Smazat (admin). */
+  function actionRow(c, opts) {
+    var act = el('div', 'cact');
+    if (opts.resolve) {
+      var res = iconBtn('resolve', 'Vyřešeno', 'cres');
+      res.setAttribute('role', 'checkbox');
+      res.setAttribute('aria-checked', c.resolved ? 'true' : 'false');
+      res.setAttribute('data-resolve', c.id);
+      if (c.pending) res.disabled = true;
+      act.appendChild(res);
+    }
+    if (opts.reply) {
+      var rep = iconBtn('reply', 'Odpovědět');
+      rep.setAttribute('data-reply', c.id);
+      act.appendChild(rep);
+    }
+    if (!c.pending && isMine(c)) {
+      var edit = iconBtn('edit', 'Upravit');
+      edit.setAttribute('data-edit', c.id);
+      act.appendChild(edit);
+    }
+    if (!c.pending) {
+      var copy = iconBtn('link', 'Kopírovat odkaz');
+      copy.setAttribute('data-copy', c.id);
+      act.appendChild(copy);
+    }
+    if (isAdmin() && !c.pending) act.appendChild(deleteBtn(c.id));
+    return act;
+  }
+
+  /* Formulář pro odpověď i pro úpravu – stejný tvar, jiný popisek.
+     opts: {value, placeholder, save, onSave(ta, err), onInput(text), onCancel} */
+  function textForm(opts) {
+    var form = el('div', 'cform');
+    var ta = document.createElement('textarea');
+    ta.placeholder = opts.placeholder;
+    ta.setAttribute('aria-label', opts.placeholder);
+    ta.value = opts.value || '';
+    var actRow = el('div', 'cform-act');
+    var save = el('button', 'cprim', opts.save);
+    save.type = 'button';
+    var cancel = el('button', 'cghost', 'Zrušit');
+    cancel.type = 'button';
+    actRow.appendChild(save);
+    actRow.appendChild(cancel);
+    var err = el('p', 'cerr');
+    err.hidden = true;
+    form.appendChild(ta);
+    form.appendChild(actRow);
+    form.appendChild(err);
+    save.addEventListener('click', function () { opts.onSave(ta, err); });
+    cancel.addEventListener('click', opts.onCancel);
+    ta.addEventListener('input', function () { opts.onInput(ta.value); });
+    setTimeout(function () {
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+    }, 0);
+    return form;
   }
 
   function passes(c) {
@@ -350,6 +466,15 @@
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({ resolved: value })
+    });
+  }
+
+  /* Úprava textu – tlačítko se nabízí jen u vlastních komentářů. */
+  function patchBody(id, text) {
+    return restFetch(REST + '?id=eq.' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ body: text })
     });
   }
 
@@ -699,15 +824,63 @@
     }
     for (var g = 0; g < groups.length; g++) {
       var group = groups[g];
-      var groupEl = el('div', 'cgroup');
-      var head = el('div', 'cgroup-h', group.section);
-      if (group.live === false) head.appendChild(el('span', 'cgroup-dead', 'Sekce už v návrhu není.'));
+      var groupEl = el('div', 'csec');
+      var head = el('div', 'csec-h', group.section);
+      if (group.live === false) head.appendChild(el('span', 'csec-dead', 'Sekce už v návrhu není.'));
       groupEl.appendChild(head);
       for (var i = 0; i < group.items.length; i++) {
         groupEl.appendChild(renderItem(group.items[i], group));
       }
       listEl.appendChild(groupEl);
     }
+  }
+
+  function metaRow(c, withTag) {
+    var meta = el('div', 'cmeta');
+    meta.appendChild(el('b', null, c.author_name));
+    if (isNew(c, seenAtLoad)) {
+      var dot = el('span', 'cnew', '');
+      dot.setAttribute('aria-hidden', 'true');
+      meta.appendChild(dot);
+    }
+    meta.appendChild(el('span', 'ctime', c.pending ? 'právě teď' : relTime(c.created_at)));
+    if (withTag) meta.appendChild(el('span', 'ctag', VIEW_LABELS[c.view] || c.view));
+    return meta;
+  }
+
+  function editForm(c) {
+    return textForm({
+      value: editText,
+      placeholder: 'Komentář',
+      save: 'Uložit',
+      onInput: function (text) { editText = text; },
+      onSave: function (ta, err) { submitEdit(c.id, ta, err); },
+      onCancel: function () { editFor = null; editText = ''; render(); }
+    });
+  }
+
+  function replyForm(rootId) {
+    return textForm({
+      value: replyText,
+      placeholder: 'Odpověď',
+      save: 'Přidat',
+      onInput: function (text) { replyText = text; },
+      onSave: function (ta, err) { submitReply(rootId, ta, err); },
+      onCancel: function () { replyFor = null; replyText = ''; render(); }
+    });
+  }
+
+  function renderReply(kid) {
+    var rep = el('div', 'crep' + (kid.pending ? ' cpending' : ''));
+    rep.setAttribute('data-id', kid.id);
+    rep.appendChild(metaRow(kid, false));
+    if (editFor === kid.id) {
+      rep.appendChild(editForm(kid));
+      return rep;
+    }
+    rep.appendChild(el('div', 'ctext', kid.body));
+    if (!kid.pending) rep.appendChild(actionRow(kid, {}));
+    return rep;
   }
 
   function renderItem(c, group) {
@@ -722,42 +895,13 @@
     item.appendChild(badge);
 
     var main = el('div', 'cmain');
-    var meta = el('div', 'cmeta');
-    meta.appendChild(el('b', null, c.author_name));
-    if (isNew(c, seenAtLoad)) {
-      var dot = el('span', 'cnew', '');
-      dot.setAttribute('aria-hidden', 'true');
-      meta.appendChild(dot);
+    main.appendChild(metaRow(c, true));
+    if (editFor === c.id) {
+      main.appendChild(editForm(c));
+    } else {
+      main.appendChild(el('div', 'ctext', c.body));
+      main.appendChild(actionRow(c, { resolve: true, reply: !c.resolved && !c.pending }));
     }
-    meta.appendChild(el('span', 'ctime', c.pending ? 'právě teď' : relTime(c.created_at)));
-    meta.appendChild(el('span', 'ctag', VIEW_LABELS[c.view] || c.view));
-    main.appendChild(meta);
-    main.appendChild(el('div', 'ctext', c.body));
-
-    var act = el('div', 'cact');
-    var resLabel = el('label', null);
-    var resInput = document.createElement('input');
-    resInput.type = 'checkbox';
-    resInput.checked = !!c.resolved;
-    resInput.disabled = !!c.pending;
-    resInput.setAttribute('data-resolve', c.id);
-    resLabel.appendChild(resInput);
-    resLabel.appendChild(document.createTextNode(' Vyřešeno'));
-    act.appendChild(resLabel);
-    if (!c.resolved && !c.pending) {
-      var reply = el('a', 'creply', 'Odpovědět');
-      reply.href = '#';
-      reply.setAttribute('data-reply', c.id);
-      act.appendChild(reply);
-    }
-    if (!c.pending) {
-      var copyA = el('a', 'ccopy', 'Kopírovat odkaz');
-      copyA.href = '#';
-      copyA.setAttribute('data-copy', c.id);
-      act.appendChild(copyA);
-    }
-    if (isAdmin() && !c.pending) act.appendChild(deleteLink(c.id));
-    main.appendChild(act);
 
     if (c.resolved) {
       /* vyřešené vlákno je sbalené */
@@ -765,62 +909,10 @@
     } else {
       if (kids.length) {
         var reps = el('div', 'creps');
-        for (var i = 0; i < kids.length; i++) {
-          var kid = kids[i];
-          var rep = el('div', 'crep' + (kid.pending ? ' cpending' : ''));
-          var rmeta = el('div', 'cmeta');
-          rmeta.appendChild(el('b', null, kid.author_name));
-          if (isNew(kid, seenAtLoad)) {
-            var rdot = el('span', 'cnew', '');
-            rdot.setAttribute('aria-hidden', 'true');
-            rmeta.appendChild(rdot);
-          }
-          rmeta.appendChild(el('span', 'ctime', kid.pending ? 'právě teď' : relTime(kid.created_at)));
-          rep.appendChild(rmeta);
-          rep.appendChild(el('div', 'ctext', kid.body));
-          if (!kid.pending) {
-            var rAct = el('div', 'cact');
-            var rCopy = el('a', 'ccopy', 'Kopírovat odkaz');
-            rCopy.href = '#';
-            rCopy.setAttribute('data-copy', kid.id);
-            rAct.appendChild(rCopy);
-            if (isAdmin()) rAct.appendChild(deleteLink(kid.id));
-            rep.appendChild(rAct);
-          }
-          reps.appendChild(rep);
-        }
+        for (var i = 0; i < kids.length; i++) reps.appendChild(renderReply(kids[i]));
         main.appendChild(reps);
       }
-      if (replyFor === c.id) {
-        var form = el('div', 'cform');
-        var ta = document.createElement('textarea');
-        ta.placeholder = 'Odpověď';
-        ta.setAttribute('aria-label', 'Odpověď');
-        ta.value = replyText;
-        var actRow = el('div', 'cform-act');
-        var save = el('button', 'cprim', 'Přidat');
-        save.type = 'button';
-        var cancel = el('button', 'cghost', 'Zrušit');
-        cancel.type = 'button';
-        actRow.appendChild(save);
-        actRow.appendChild(cancel);
-        var ferr = el('p', 'cerr');
-        ferr.hidden = true;
-        form.appendChild(ta);
-        form.appendChild(actRow);
-        form.appendChild(ferr);
-        main.appendChild(form);
-        save.addEventListener('click', function () {
-          submitReply(c.id, ta, ferr);
-        });
-        cancel.addEventListener('click', function () {
-          replyFor = null;
-          replyText = '';
-          render();
-        });
-        ta.addEventListener('input', function () { replyText = ta.value; });
-        setTimeout(function () { ta.focus(); }, 0);
-      }
+      if (replyFor === c.id) main.appendChild(replyForm(c.id));
     }
 
     item.appendChild(main);
@@ -917,7 +1009,8 @@
     comp.classList.add('on');
     compErr.textContent = message || '';
     compErr.hidden = !message;
-    var vw = document.documentElement.clientWidth;
+    /* při otevřeném panelu se composer vejde jen do plochy vlevo od něj */
+    var vw = document.documentElement.clientWidth - (panelOpen && !narrow.matches ? 360 : 0);
     var vh = document.documentElement.clientHeight;
     var left = Math.min(Math.max(px + 12, 12), Math.max(12, vw - 312));
     comp.style.left = left + 'px';
@@ -1002,8 +1095,49 @@
       replyFor = rootId;
       replyText = text;
       render();
-      var err = listEl.querySelector('.citem[data-id="' + rootId + '"] .cerr');
-      if (err) { err.textContent = 'Komentář se neuložil – zkuste to znovu.'; err.hidden = false; }
+      showFormError(rootId, 'Komentář se neuložil – zkuste to znovu.');
+    });
+  }
+
+  /* Chybová hláška patří k formuláři toho komentáře, ne k prvnímu v pořadí
+     (kořen má odpovědi s vlastními formuláři). */
+  function showFormError(id, message) {
+    var errs = listEl.querySelectorAll('.cerr');
+    for (var i = 0; i < errs.length; i++) {
+      var holder = errs[i].closest('[data-id]');
+      if (holder && holder.getAttribute('data-id') === id) {
+        errs[i].textContent = message;
+        errs[i].hidden = false;
+        return;
+      }
+    }
+  }
+
+  /* Úprava vlastního komentáře – optimisticky, při chybě se text vrátí
+     a formulář zůstane otevřený s rozepsaným zněním. */
+  function submitEdit(id, ta) {
+    var text = ta.value.trim();
+    var c = byId(id);
+    if (!c) return;
+    if (!text || text === c.body) {
+      editFor = null;
+      editText = '';
+      render();
+      return;
+    }
+    var before = c.body;
+    c.body = text;
+    editFor = null;
+    editText = '';
+    render();
+    patchBody(id, text).then(function () {
+      noteEl.hidden = true;
+    }, function () {
+      c.body = before;
+      editFor = id;
+      editText = text;
+      render();
+      showFormError(id, 'Úprava se neuložila – zkuste to znovu.');
     });
   }
 
@@ -1221,15 +1355,32 @@
     listEl.addEventListener('click', function (e) {
       var t = e.target;
       if (t.closest('.cform') || t.closest('textarea')) return;
+      var res = t.closest('[data-resolve]');
+      if (res) {
+        e.preventDefault();
+        setResolved(res.getAttribute('data-resolve'), res.getAttribute('aria-checked') !== 'true');
+        return;
+      }
       var copy = t.closest('[data-copy]');
       if (copy) {
         e.preventDefault();
         var cc = byId(copy.getAttribute('data-copy'));
         if (!cc) return;
         copyText(commentUrl(cc)).then(function () {
-          copy.textContent = 'Zkopírováno';
-          setTimeout(function () { copy.textContent = 'Kopírovat odkaz'; }, 1500);
-        }, function () { /* schránka nedostupná – text se nemění */ });
+          if (window.draftTip) window.draftTip.flash(copy, 'Zkopírováno');
+        }, function () { /* schránka nedostupná – bublina se nemění */ });
+        return;
+      }
+      var edit = t.closest('[data-edit]');
+      if (edit) {
+        e.preventDefault();
+        var ec = byId(edit.getAttribute('data-edit'));
+        if (!ec) return;
+        editFor = ec.id;
+        editText = ec.body;
+        replyFor = null;
+        replyText = '';
+        render();
         return;
       }
       var del = t.closest('[data-del]');
@@ -1246,7 +1397,8 @@
           items = items.filter(function (x) {
             return x.id !== delId && x.parent_id !== delId;
           });
-          if (replyFor === delId) { replyFor = null; replyText = ''; }
+          if (replyFor && !byId(replyFor)) { replyFor = null; replyText = ''; }
+          if (editFor && !byId(editFor)) { editFor = null; editText = ''; }
           render();
         }, function () {
           noteEl.textContent = 'Komentář se nepodařilo smazat – zkuste to znovu.';
@@ -1259,10 +1411,12 @@
         e.preventDefault();
         replyFor = reply.getAttribute('data-reply');
         replyText = '';
+        editFor = null;
+        editText = '';
         render();
         return;
       }
-      if (t.closest('input') || t.closest('label')) return;
+      if (t.closest('.cico')) return;
       var item = t.closest('.citem[data-id]');
       if (!item) return;
       var c = byId(item.getAttribute('data-id'));
@@ -1277,16 +1431,10 @@
       }
     });
 
-    listEl.addEventListener('change', function (e) {
-      var input = e.target;
-      if (input && input.hasAttribute && input.hasAttribute('data-resolve')) {
-        setResolved(input.getAttribute('data-resolve'), input.checked);
-      }
-    });
-
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
       if (comp.classList.contains('on')) { closeComposer(); return; }
+      if (editFor) { editFor = null; editText = ''; render(); return; }
       if (replyFor) { replyFor = null; replyText = ''; render(); return; }
       if (picking) { exitPick(); return; }
       if (panelOpen) closePanel();
