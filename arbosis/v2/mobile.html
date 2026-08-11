@@ -91,6 +91,8 @@
 @keyframes arbGlow{0%,100%{transform:scale(1);opacity:0.7}50%{transform:scale(1.06);opacity:1}}
 @media (prefers-reduced-motion:reduce){#frame [data-glow]>div{animation:none;opacity:0.85}}
 
+#frame a:focus-visible,#frame [data-send]:focus-visible,#frame [data-fh]:focus-visible{outline:2px solid #E8673C;outline-offset:3px;border-radius:2px}
+#frame .bp:focus-visible,#frame [data-send]:focus-visible,#frame .ncta:focus-visible{outline-color:#F5F2EC}
 #frame [data-fwrap]{position:relative}
 #frame [data-ring],#frame [data-ring-b]{position:absolute;pointer-events:none;opacity:0;background:linear-gradient(115deg,#4A8C5C,#9BC5A2 20%,#C9DFC9 34%,#7BAF7E 56%,#9BC5A2 78%,#4A8C5C 100%);background-size:300% 100%;transition:opacity 620ms cubic-bezier(0.2,0,0,1)}
 #frame [data-ring]{inset:-1.5px;border-radius:10px}
@@ -281,7 +283,7 @@
             </div>
             <div><label for="f-zprava" style="font-size:13px;font-weight:500;letter-spacing:0.02em;color:#1B3A2D;margin-bottom:7px;display:block">S čím vám pomůžeme <span style="color:#C44217">*</span></label><textarea class="inp" id="f-zprava" style="width:100%;box-sizing:border-box;height:104px;padding:12px 14px;background:#FFFFFF;border:1px solid #B8D9BE;border-radius:6px;font-size:16px;color:#1B3A2D;transition:border-color 200ms;resize:vertical"></textarea></div>
             <div data-ok="" style="display:none;align-items:center;gap:10px;background:rgba(184,217,190,0.35);border:1px solid #4A8C5C;border-radius:6px;padding:12px 16px;font-size:14px;color:#1B3A2D">Odesláno.</div>
-            <div class="send" data-send="" role="button" style="margin-top:4px;display:flex;align-items:center;justify-content:center;gap:10px;height:56px;background:#E8673C;color:#1B3A2D;font-size:19px;font-weight:700;border-radius:6px;cursor:pointer;transition:transform 200ms">Odeslat poptávku<span style="font-weight:600">→</span></div>
+            <div class="send" data-send="" role="button" tabindex="0" style="margin-top:4px;display:flex;align-items:center;justify-content:center;gap:10px;height:56px;background:#E8673C;color:#1B3A2D;font-size:19px;font-weight:700;border-radius:6px;cursor:pointer;transition:transform 200ms">Odeslat poptávku<span style="font-weight:600">→</span></div>
             <div style="margin-top:-4px;text-align:center;font-size:13px;color:#5E7368">Nezávazná poptávka, odpovíme do 24 hodin</div>
             <div style="margin-top:-6px;text-align:center;font-size:12px;line-height:1.5;color:#7E8C84">Odesláním formuláře souhlasíte se zpracováním osobních údajů.</div>
             </form>
@@ -376,8 +378,11 @@ if(hero){var ws=$$('[data-hwi]',hero),sub=$$('[data-hsub]',hero),veil=$('[data-h
    sub.forEach(function(s,i){var d=620+i*110;s.style.transition='opacity 650ms '+EASE+' '+d+'ms,transform 650ms '+EASE+' '+d+'ms';s.style.opacity='1';s.style.transform='translateY(0)'});
    hcs.forEach(function(el){var t=+el.dataset.hc,sfx=el.dataset.hcs||'';setTimeout(function(){var t0=performance.now();(function tick(){var p=Math.min(1,(performance.now()-t0)/1100);el.textContent=fmt(t*(1-Math.pow(1-p,3)))+sfx;if(p<1)requestAnimationFrame(tick)})()},950)});
   })})};
-  var img=$('[data-himg]',hero);
-  if(img&&!img.complete)img.addEventListener('load',function(){setTimeout(play,500)},{once:true});else setTimeout(play,500);
+  var img=$('[data-himg]',hero),fired=false;
+  var go=function(d){if(fired)return;fired=true;setTimeout(play,d)};
+  if(img&&!img.complete){img.addEventListener('load',function(){go(500)},{once:true});
+   img.addEventListener('error',function(){go(0)},{once:true});setTimeout(function(){go(0)},1200)}
+  else go(500);
  }}
 var ro=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;var d=el.dataset.rv||0;el.style.transition='opacity 600ms '+EASE+' '+d+'ms,transform 600ms '+EASE+' '+d+'ms';el.style.opacity='1';el.style.transform='translateY(0)';ro.unobserve(el)})},{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
 $$('[data-rv]').forEach(function(el){if(!anim||el.getBoundingClientRect().top<innerHeight*0.92)return;el.style.opacity='0';el.style.transform='translateY(18px)';ro.observe(el)});
@@ -407,7 +412,9 @@ $$('[data-faq]').forEach(function(it){var head=$('[data-fh]',it),body=$('[data-f
  head.tabIndex=0;head.setAttribute('role','button');
  head.addEventListener('click',function(){set(!it.dataset.open)});
  head.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();set(!it.dataset.open)}})});
-$$('[data-send]').forEach(function(send){send.addEventListener('click',function(){var ok=$('[data-ok]',send.parentElement);if(ok)ok.style.display='flex'})});
+$$('[data-send]').forEach(function(send){var fire=function(){var ok=$('[data-ok]',send.parentElement);if(ok)ok.style.display='flex'};
+ send.addEventListener('click',fire);
+ send.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fire()}})});
 $$('[data-anchor]').forEach(function(a){a.addEventListener('click',function(ev){ev.preventDefault();var el=$(a.dataset.anchor);if(!el)return;var y0=scrollY,y1=el.getBoundingClientRect().top+scrollY-64;
  if(!anim){scrollTo(0,y1);return}
  var t0=performance.now(),d=Math.min(900,400+Math.abs(y1-y0)*0.2);
