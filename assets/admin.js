@@ -54,7 +54,15 @@
     '.a-status{flex:none;font-size:12.5px;font-weight:600;color:var(--gray-500)}',
     '.a-status.a-err{color:var(--accent)}',
     '.a-status:empty{display:none}',
-    '.a-user{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;padding:14px 0;border-top:1px solid var(--gray-300)}',
+    '.a-ico{display:inline-flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;',
+    'padding:0;background:transparent;border:1px solid var(--black);border-radius:0;color:var(--black);',
+    'cursor:pointer;transition:color var(--dur-fast) var(--ease-out),border-color var(--dur-fast) var(--ease-out)}',
+    '.a-ico:hover{color:var(--accent);border-color:var(--accent)}',
+    '.a-ico:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}',
+    '.a-ico[disabled]{color:var(--gray-500);border-color:var(--gray-300);cursor:default}',
+    '.a-icon{display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;',
+    'stroke-linecap:butt;stroke-linejoin:miter}',
+    '.a-user{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:14px 0;border-top:1px solid var(--gray-300)}',
     '.a-user:last-of-type{border-bottom:1px solid var(--gray-300)}',
     '.a-user b{font-size:15px;font-weight:600}',
     '.a-mail{font-size:13px;color:var(--gray-500)}',
@@ -316,13 +324,22 @@
      aby ho šlo po založení účtu ukázat i po překreslení seznamu. */
   var freshPasswords = {};
 
+  /* dvě šipky dokola (dva oblouky s hroty), v černém rámečku tlačítka */
+  var ICON_REFRESH =
+    '<path d="M5 9.4A7.5 7.5 0 0 1 19 9.4"/><path d="M15.8 9.4H19V6.2"/>' +
+    '<path d="M19 14.6A7.5 7.5 0 0 1 5 14.6"/><path d="M8.2 14.6H5v3.2"/>';
+
   function passwordCell(u, status) {
     var wrap = el('span', 'a-pass');
     var shown = el('button', 'a-pval');
     shown.type = 'button';
     shown.hidden = true;
-    var gen = el('button', 'a-link', 'Nové heslo');
+    var gen = el('button', 'a-ico');
     gen.type = 'button';
+    gen.setAttribute('data-tip', 'Generovat nové heslo');
+    gen.setAttribute('aria-label', 'Generovat nové heslo');
+    gen.innerHTML = '<svg class="a-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+      ICON_REFRESH + '</svg>';
 
     shown.addEventListener('click', function () {
       copyText(shown.getAttribute('data-pw') || '').then(function () {
@@ -339,7 +356,7 @@
       mask.setAttribute('aria-hidden', 'true');
       shown.appendChild(mask);
       shown.appendChild(el('span', 'a-pw', pw));
-      shown.title = 'Najetím odkryjete, kliknutím zkopírujete';
+      shown.setAttribute('data-tip', 'Najetím odkryjete, kliknutím zkopírujete');
       shown.setAttribute('aria-label', 'Zkopírovat heslo');
       shown.hidden = false;
     }

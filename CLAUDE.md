@@ -22,7 +22,9 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
   **nikdy needitovat**.
 - `/assets/config.js` – Project URL + anon public klíč Supabase (jediná
   konfigurace; service_role klíč do repa nikdy).
-- `/assets/gate.js` – sdílené přihlášení přes Supabase Auth (e-mail + heslo).
+- `/assets/gate.js` – sdílené přihlášení přes Supabase Auth (e-mail + heslo)
+  a sdílené bubliny `data-tip` (`window.draftTip`), protože je na všech
+  stránkách.
 - `/assets/comments.js` – komentáře s piny ve viewerech.
 - `/assets/admin.js` – sekce „Správa" na rozcestníku (jen role admin).
 - `/assets/favicon.svg|png` – favicon (čtvercový symbol na černé).
@@ -79,6 +81,11 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
   `[data-auth]`, naváže `[data-auth-signout]` a vystaví `window.draftUser`
   + `window.draftAuth.fetch` (autorizovaný fetch pro REST) + událost
   `draft:user` pro comments.js.
+- Bubliny: stačí `data-tip="Popis"` na jakémkoli prvku (i doplněném
+  skriptem), obsluha je delegovaná na dokumentu. Najetím se ukáže po
+  0,5 s, focusem z klávesnice hned; `window.draftTip.flash(prvek, text)`
+  ji ukáže okamžitě (potvrzení akce, např. „Zkopírováno"). Význam pro
+  čtečky nese `aria-label` prvku, bublina je jen vizuální.
 
 ## Komentáře (comments.js)
 
@@ -97,8 +104,18 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
   relativní x/y (0–1) uvnitř sekce. Panel ukazuje oba pohledy pro
   projekt+verzi, pin se kreslí jen v aktuálním pohledu; klik na komentář
   z druhého pohledu přechází na druhý viewer s `#c=<id>`. Klient vlákna
-  uklízí přes „Vyřešeno"; mazat smí jen admin („Smazat" s potvrzením,
+  uklízí přes „Vyřešeno"; mazat smí jen admin (koš s potvrzením,
   vlastní i cizí, smazání kořene vezme kaskádou i odpovědi).
+- Panel je vysoký přes celé okno a jeho hlava je v jedné řadě s lištou
+  (52 px). Lišta se o šířku panelu zúží (`body.c-open`) a sbaluje se
+  podle své skutečné šířky, ne podle šířky okna. Seznam je jeden sloupec
+  dělený na sekce plátna; název sekce drží u horní hrany, dokud ho
+  nevystřídá další (sticky).
+- Akce u komentáře jsou ikony s bublinou (`data-tip`, obsluha v gate.js):
+  Vyřešeno (prázdný čtvereček, najetím naznačené zaškrtnutí, po vyřešení
+  plné), Odpovědět (šipka jako u e-mailu), Upravit (tužka, jen vlastní
+  komentář – i odpověď, PATCH `body`), Kopírovat odkaz (článek řetězu,
+  po zkopírování bublina „Zkopírováno") a Smazat (koš, jen admin).
 - Fáze B: filtry stav/zobrazení/autor (kombinují se, localStorage
   `draft-filters-<projekt>`, platí i pro piny; počítadlo v liště je vždy
   počet nevyřešených), nepřečtené (localStorage `seen-<projekt>-<verze>`,
@@ -127,11 +144,13 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
 - Nový účet jde založit v „Přidat uživatele" (e-mail, jméno, příjmení):
   vznikne bez role a bez přístupů, heslo se vygeneruje a rovnou ukáže.
   Roli admin lze dát jen zásahem do `app_metadata` v Supabase.
-- Hesla: uložené heslo je bcrypt hash, přečíst ho nelze. Ve Správě jde jen
-  nastavit nové – vygeneruje se v prohlížeči, uloží přes
-  `admin_set_user_password` a zůstane zobrazené do zavření stránky
-  (tečky, najetím se odkryje, kliknutím zkopíruje). Do repa nikdy.
-  Adminovi smí heslo měnit jen on sám (hlídá SQL funkce).
+- Hesla: uložené heslo je bcrypt hash, **přečíst ho nelze** – aktuální
+  heslo tedy ve Správě nikdy nepůjde zobrazit. Jde jen nastavit nové:
+  ikona dvou šipek dokola v černém rámečku (bublina „Generovat nové
+  heslo"), heslo se vygeneruje v prohlížeči, uloží přes
+  `admin_set_user_password` a zůstane vedle tlačítka zobrazené do
+  zavření stránky (tečky, najetím se odkryje, kliknutím zkopíruje).
+  Do repa nikdy. Adminovi smí heslo měnit jen on sám (hlídá SQL funkce).
 - Grants: `anon` má na `projects`/`comments` jen SELECT (RLS vrací prázdno,
   keepalive dostává 200 `[]`), `authenticated` bez DELETE na `comments`
   (mazání neexistuje, jen „Vyřešeno").
