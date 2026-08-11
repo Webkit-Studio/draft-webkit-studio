@@ -54,38 +54,43 @@
     '.a-status{flex:none;font-size:12.5px;font-weight:600;color:var(--gray-500)}',
     '.a-status.a-err{color:var(--accent)}',
     '.a-status:empty{display:none}',
-    '.a-ico{display:inline-flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;',
-    'padding:0;background:transparent;border:1px solid var(--black);border-radius:0;color:var(--black);',
-    'cursor:pointer;transition:color var(--dur-fast) var(--ease-out),border-color var(--dur-fast) var(--ease-out)}',
-    '.a-ico:hover{color:var(--accent);border-color:var(--accent)}',
-    '.a-ico:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}',
-    '.a-ico[disabled]{color:var(--gray-500);border-color:var(--gray-300);cursor:default}',
-    '.a-icon{display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;',
+    '.a-icon{display:block;width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;',
     'stroke-linecap:butt;stroke-linejoin:miter}',
-    '.a-user{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:14px 0;border-top:1px solid var(--gray-300)}',
+    /* Uživatel: první řádek jméno – e-mail – heslo – obnovení, přístupy pod ním */
+    '.a-user{padding:14px 0;border-top:1px solid var(--gray-300)}',
     '.a-user:last-of-type{border-bottom:1px solid var(--gray-300)}',
-    '.a-user b{font-size:15px;font-weight:600}',
+    '.a-uhead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px}',
+    '.a-uhead b{font-size:15px;font-weight:600}',
     '.a-mail{font-size:13px;color:var(--gray-500)}',
     '.a-all{margin-left:auto;font-size:12.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;',
     'border:1px solid var(--black);padding:3px 8px;white-space:nowrap}',
-    '.a-checks{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px 14px}',
+    '.a-checks{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px 14px}',
     '.a-checks label{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;',
     'color:var(--gray-500);cursor:pointer;white-space:nowrap}',
     '.a-checks input{width:15px;height:15px;margin:0;accent-color:var(--black)}',
     '.a-checks input:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}',
-    /* Heslo: maskované tečkami, čitelné až při najetí / focusu, klik kopíruje */
-    '.a-pass{flex:none;display:inline-flex;align-items:center;gap:10px;white-space:nowrap}',
-    '.a-pval{border:1px solid var(--gray-300);border-radius:0;background:var(--white);',
-    'padding:4px 8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;',
+    /* Heslo a obnovení jsou jeden segment: tečky (najetím odkryjí, klikem
+       zkopírují) + tlačítko se šipkami. */
+    '.a-pass{flex:none;margin-left:auto;display:inline-flex;align-items:stretch;height:32px;',
+    'border:1px solid var(--gray-300);white-space:nowrap}',
+    '.a-pval{display:inline-flex;align-items:center;padding:0 10px;border:0;border-radius:0;',
+    'background:transparent;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;',
     'color:var(--black);cursor:pointer;transition:color var(--dur-fast) var(--ease-out)}',
     '.a-pval .a-pw{display:none}',
     '.a-pval:hover .a-pw,.a-pval:focus-visible .a-pw{display:inline}',
     '.a-pval:hover .a-pmask,.a-pval:focus-visible .a-pmask{display:none}',
-    '.a-pval:hover,.a-pval:focus-visible{color:var(--accent)}',
-    '.a-pval:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}',
-    '.a-pval[hidden]{display:none}',
+    '.a-pval:hover{color:var(--accent)}',
+    '.a-pval:focus-visible{outline:2px solid var(--focus-ring);outline-offset:-2px}',
+    '.a-pval[aria-disabled="true"],.a-pval[aria-disabled="true"]:hover{color:var(--gray-500);cursor:default}',
+    '.a-ico{display:inline-flex;align-items:center;justify-content:center;flex:none;width:32px;',
+    'padding:0;background:transparent;border:0;border-left:1px solid var(--gray-300);border-radius:0;',
+    'color:var(--gray-500);cursor:pointer;transition:color var(--dur-fast) var(--ease-out)}',
+    '.a-ico:hover{color:var(--accent)}',
+    '.a-ico:focus-visible{outline:2px solid var(--focus-ring);outline-offset:-2px}',
+    '.a-ico[disabled]{color:var(--gray-300);cursor:default}',
+    '.a-user .a-status{display:block;margin-top:8px}',
     '.a-note{margin-top:14px;font-size:12.5px;color:var(--gray-500)}',
-    '@media (max-width:560px){.a-slug{width:100%}.a-checks,.a-all{margin-left:0}}'
+    '@media (max-width:560px){.a-slug{width:100%}.a-pass,.a-all{margin-left:0}}'
   ].join('');
 
   var root, projRows, userRows, addWrap, userAddWrap, addForm = null, userForm = null;
@@ -333,7 +338,6 @@
     var wrap = el('span', 'a-pass');
     var shown = el('button', 'a-pval');
     shown.type = 'button';
-    shown.hidden = true;
     var gen = el('button', 'a-ico');
     gen.type = 'button';
     gen.setAttribute('data-tip', 'Generovat nové heslo');
@@ -342,6 +346,7 @@
       ICON_REFRESH + '</svg>';
 
     shown.addEventListener('click', function () {
+      if (shown.getAttribute('aria-disabled') === 'true') return;
       copyText(shown.getAttribute('data-pw') || '').then(function () {
         flash(status, true, 'Heslo zkopírováno');
       }, function () {
@@ -349,8 +354,24 @@
       });
     });
 
+    /* Pole hesla drží v řádku vždy, i když se heslo v tomto načtení
+       stránky negenerovalo – uložené je bcrypt hash, přečíst ho nelze.
+       (aria-disabled místo disabled: vypnuté tlačítko neposílá myší
+       události, takže by u něj nevyskočila bublina.) */
+    function blank() {
+      shown.removeAttribute('data-pw');
+      shown.setAttribute('aria-disabled', 'true');
+      shown.textContent = '';
+      var mask = el('span', 'a-pmask', new Array(13).join('•'));
+      mask.setAttribute('aria-hidden', 'true');
+      shown.appendChild(mask);
+      shown.setAttribute('data-tip', 'Uložené heslo přečíst nelze – jde jen nastavit nové');
+      shown.setAttribute('aria-label', 'Heslo nelze zobrazit');
+    }
+
     function reveal(pw) {
       shown.setAttribute('data-pw', pw);
+      shown.removeAttribute('aria-disabled');
       shown.textContent = '';
       var mask = el('span', 'a-pmask', new Array(pw.length + 1).join('•'));
       mask.setAttribute('aria-hidden', 'true');
@@ -358,7 +379,6 @@
       shown.appendChild(el('span', 'a-pw', pw));
       shown.setAttribute('data-tip', 'Najetím odkryjete, kliknutím zkopírujete');
       shown.setAttribute('aria-label', 'Zkopírovat heslo');
-      shown.hidden = false;
     }
 
     gen.addEventListener('click', function () {
@@ -380,7 +400,7 @@
       });
     });
 
-    if (freshPasswords[u.email]) reveal(freshPasswords[u.email]);
+    if (freshPasswords[u.email]) reveal(freshPasswords[u.email]); else blank();
     wrap.appendChild(shown);
     wrap.appendChild(gen);
     return wrap;
@@ -388,18 +408,21 @@
 
   function userRow(u) {
     var row = el('div', 'a-user');
-    row.appendChild(el('b', null, userName(u)));
-    row.appendChild(el('span', 'a-mail', u.email));
+    var head = el('div', 'a-uhead');
+    head.appendChild(el('b', null, userName(u)));
+    head.appendChild(el('span', 'a-mail', u.email));
+    row.appendChild(head);
     var status = el('span', 'a-status', '');
     if (u.role === 'admin') {
-      row.appendChild(el('span', 'a-all', 'Přístup ke všemu'));
+      head.appendChild(el('span', 'a-all', 'Přístup ke všemu'));
       /* heslo si admin může přenastavit jen sám sobě (hlídá SQL funkce) */
       if (window.draftUser && u.id === window.draftUser.id) {
-        row.appendChild(passwordCell(u, status));
+        head.appendChild(passwordCell(u, status));
       }
       row.appendChild(status);
       return row;
     }
+    head.appendChild(passwordCell(u, status));
     var checks = el('div', 'a-checks');
     var current = Array.isArray(u.projects) ? u.projects.slice() : [];
     projects.forEach(function (p) {
@@ -427,7 +450,6 @@
       });
     });
     row.appendChild(checks);
-    row.appendChild(passwordCell(u, status));
     row.appendChild(status);
     return row;
   }

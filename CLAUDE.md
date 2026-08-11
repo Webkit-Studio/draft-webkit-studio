@@ -150,12 +150,16 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
 - Nový účet jde založit v „Přidat uživatele" (e-mail, jméno, příjmení):
   vznikne bez role a bez přístupů, heslo se vygeneruje a rovnou ukáže.
   Roli admin lze dát jen zásahem do `app_metadata` v Supabase.
+- Řádek uživatele: jméno – e-mail – vpravo pole hesla a hned u něj
+  tlačítko obnovení (jeden segment s hairline rámečkem, výška 32 px);
+  přístupy k projektům jsou v druhé řadě pod tím.
 - Hesla: uložené heslo je bcrypt hash, **přečíst ho nelze** – aktuální
-  heslo tedy ve Správě nikdy nepůjde zobrazit. Jde jen nastavit nové:
-  ikona dvou šipek dokola v černém rámečku (bublina „Generovat nové
-  heslo"), heslo se vygeneruje v prohlížeči, uloží přes
-  `admin_set_user_password` a zůstane vedle tlačítka zobrazené do
-  zavření stránky (tečky, najetím se odkryje, kliknutím zkopíruje).
+  heslo tedy ve Správě zobrazit nejde, dokud se někde nedrží čitelná
+  kopie. Pole hesla je v řádku vždy: bez známého hesla neaktivní tečky
+  (bublina „Uložené heslo přečíst nelze"). Nové se vygeneruje
+  v prohlížeči ikonou dvou šipek dokola (bublina „Generovat nové
+  heslo"), uloží přes `admin_set_user_password` a do zavření stránky
+  zůstane v poli (tečky, najetím se odkryje, kliknutím zkopíruje).
   Do repa nikdy. Adminovi smí heslo měnit jen on sám (hlídá SQL funkce).
 - Grants: `anon` má na `projects`/`comments` jen SELECT (RLS vrací prázdno,
   keepalive dostává 200 `[]`), `authenticated` bez DELETE na `comments`
