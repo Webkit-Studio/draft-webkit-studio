@@ -90,6 +90,16 @@
 #frame [data-glow]>div{position:absolute;inset:-14%;background:radial-gradient(circle 300px at var(--gx,50%) var(--gy,42%),rgba(184,217,190,0.24),rgba(74,140,92,0.14) 30%,rgba(27,58,45,0) 62%);animation:arbGlow 9s cubic-bezier(0.4,0,0.6,1) infinite}
 @keyframes arbGlow{0%,100%{transform:scale(1);opacity:0.7}50%{transform:scale(1.06);opacity:1}}
 @media (prefers-reduced-motion:reduce){#frame [data-glow]>div{animation:none;opacity:0.85}}
+
+#frame [data-fwrap]{position:relative}
+#frame [data-ring],#frame [data-ring-b]{position:absolute;pointer-events:none;opacity:0;background:linear-gradient(115deg,#4A8C5C,#B8D9BE 20%,#EFF5ED 34%,#7BAF7E 56%,#B8D9BE 78%,#4A8C5C 100%);background-size:300% 100%;transition:opacity 620ms cubic-bezier(0.2,0,0,1)}
+#frame [data-ring]{inset:-1.5px;border-radius:10px}
+#frame [data-ring-b]{inset:-9px;border-radius:17px;filter:blur(15px)}
+#frame [data-fwrap]:hover [data-ring],#frame [data-fwrap]:focus-within [data-ring]{opacity:0.92;animation:ringShift 7s linear infinite}
+#frame [data-fwrap]:hover [data-ring-b],#frame [data-fwrap]:focus-within [data-ring-b]{opacity:0.4;animation:ringShift 7s linear infinite,ringBreath 3.8s cubic-bezier(0.4,0,0.6,1) infinite}
+@keyframes ringShift{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+@keyframes ringBreath{0%,100%{filter:blur(12px)}50%{filter:blur(20px)}}
+@media (prefers-reduced-motion:reduce){#frame [data-ring],#frame [data-ring-b]{animation:none!important}}
 </style>
 </head>
 <body>
@@ -250,7 +260,10 @@
           <div data-rv="0" style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#B8D9BE">Napište nám</div>
           <h2 data-rv="40" style="margin:12px 0 0;font-size:30px;font-weight:600;line-height:1.12;letter-spacing:-0.02em;color:#F5F2EC">Pojďme se do toho pustit</h2>
           <div data-rv="60" style="margin-top:12px;font-size:16px;line-height:1.6;color:rgba(245,242,236,0.75)">Už jen pár kliknutí. Napište nám a do 24 hodin se vám ozveme.</div>
-          <div data-rv="0" style="margin-top:32px;background:#F5F2EC;border-radius:8px;padding:24px;display:flex;flex-direction:column;gap:14px">
+          <div data-fwrap="" style="margin-top:32px">
+            <div data-ring="" aria-hidden="true"></div>
+            <div data-ring-b="" aria-hidden="true"></div>
+            <div data-rv="0" style="position:relative;background:#F5F2EC;border-radius:8px;padding:24px;display:flex;flex-direction:column;gap:14px">
             <div><div style="font-size:13px;font-weight:500;letter-spacing:0.02em;color:#1B3A2D;margin-bottom:7px">Jméno a příjmení <span style="color:#C44217">*</span></div><input class="inp" style="width:100%;box-sizing:border-box;height:48px;padding:0 14px;background:#FFFFFF;border:1px solid #B8D9BE;border-radius:6px;font-size:16px;color:#1B3A2D;transition:border-color 200ms"></div>
             <div><div style="font-size:13px;font-weight:500;letter-spacing:0.02em;color:#1B3A2D;margin-bottom:7px">E-mail <span style="color:#C44217">*</span></div><input class="inp" style="width:100%;box-sizing:border-box;height:48px;padding:0 14px;background:#FFFFFF;border:1px solid #B8D9BE;border-radius:6px;font-size:16px;color:#1B3A2D;transition:border-color 200ms"></div>
             <div><div style="font-size:13px;font-weight:500;letter-spacing:0.02em;color:#1B3A2D;margin-bottom:7px">Telefon <span style="font-weight:400;color:#5E7368">· nepovinné</span></div><input class="inp" style="width:100%;box-sizing:border-box;height:48px;padding:0 14px;background:#FFFFFF;border:1px solid #B8D9BE;border-radius:6px;font-size:16px;color:#1B3A2D;transition:border-color 200ms"></div>
@@ -259,6 +272,7 @@
             <div data-ok="" style="display:none;align-items:center;gap:10px;background:rgba(184,217,190,0.35);border:1px solid #4A8C5C;border-radius:6px;padding:12px 16px;font-size:14px;color:#1B3A2D">Poptávka dorazila. Odpovíme do 24 hodin.</div>
             <div class="send" data-send="" role="button" style="margin-top:4px;display:flex;align-items:center;justify-content:center;gap:10px;height:56px;background:#E8673C;color:#1B3A2D;font-size:19px;font-weight:700;border-radius:6px;cursor:pointer;transition:transform 200ms">Odeslat poptávku<span style="font-weight:600">→</span></div>
             <div style="margin-top:-4px;text-align:center;font-size:13px;color:#5E7368">Nezávazná poptávka</div>
+            </div>
           </div>
           <div data-rv="100" style="margin-top:36px">
             <a href="mailto:info@arbosis.cz" style="display:inline-block;color:#F5F2EC;font-size:24px;font-weight:600;letter-spacing:-0.01em;text-decoration:none">info@arbosis.cz</a>
@@ -419,12 +433,10 @@ if(glow&&gsec){var gi=glow.firstElementChild,gtx=50,gty=42,gcx=50,gcy=42,graf=nu
  gsec.addEventListener('mousemove',gaim);
  gsec.addEventListener('mouseenter',function(){gset('0.78')});
  gsec.addEventListener('mouseleave',function(){gset('0.62');gtx=50;gty=42;if(!graf)graf=requestAnimationFrame(gpaint)});
- var gsend=$('[data-send]',gsec),gcard=gsend&&gsend.parentElement;
- if(gcard){gcard.addEventListener('mouseenter',function(){gset('1')});
+ var gcard=$('[data-fwrap]',gsec);
+ if(gcard){gcard.addEventListener('mouseenter',function(){gset('0.4')});
   gcard.addEventListener('mouseleave',function(){gset('0.78')});
-  gcard.addEventListener('mousedown',function(){gset('1.18')});
-  gcard.addEventListener('mouseup',function(){gset('1')});
-  gcard.addEventListener('focusin',function(){gset('1.06')});
+  gcard.addEventListener('focusin',function(){gset('0.4')});
   gcard.addEventListener('focusout',function(){gset('0.78')})}}
 })();
   </script>
