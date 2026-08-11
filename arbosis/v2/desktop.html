@@ -104,12 +104,17 @@
 @media (prefers-reduced-motion:reduce){#frame [data-glow]>div{animation:none;opacity:0.85}}
 
 #frame [data-fwrap]{position:relative}
-#frame [data-ring],#frame [data-ring-b]{position:absolute;pointer-events:none;opacity:0;background:linear-gradient(115deg,#4A8C5C,#B8D9BE 20%,#EFF5ED 34%,#7BAF7E 56%,#B8D9BE 78%,#4A8C5C 100%);background-size:300% 100%;transition:opacity 620ms cubic-bezier(0.2,0,0,1)}
+#frame [data-ring],#frame [data-ring-b]{position:absolute;pointer-events:none;opacity:0;background:linear-gradient(115deg,#4A8C5C,#9BC5A2 20%,#C9DFC9 34%,#7BAF7E 56%,#9BC5A2 78%,#4A8C5C 100%);background-size:300% 100%;transition:opacity 620ms cubic-bezier(0.2,0,0,1)}
 #frame [data-ring]{inset:-2px;border-radius:10px}
 #frame [data-ring-b]{inset:-12px;border-radius:20px;filter:blur(20px)}
-#frame [data-fwrap]:hover [data-ring],#frame [data-fwrap]:focus-within [data-ring]{opacity:0.92;animation:ringShift 7s linear infinite}
-#frame [data-fwrap]:hover [data-ring-b],#frame [data-fwrap]:focus-within [data-ring-b]{opacity:0.4;animation:ringShift 7s linear infinite,ringBreath 3.8s cubic-bezier(0.4,0,0.6,1) infinite}
+#frame [data-fwrap]:hover [data-ring]{opacity:0.5;animation:ringShift 9s linear infinite}
+#frame [data-fwrap]:hover [data-ring-b]{opacity:0.22;animation:ringShift 9s linear infinite}
+/* vybraný formulář jemně dýchá */
+#frame [data-fwrap]:focus-within [data-ring]{animation:ringShift 9s linear infinite,ringPulse 2.9s cubic-bezier(0.4,0,0.6,1) infinite}
+#frame [data-fwrap]:focus-within [data-ring-b]{animation:ringShift 9s linear infinite,ringPulseB 2.9s cubic-bezier(0.4,0,0.6,1) infinite}
 @keyframes ringShift{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+@keyframes ringPulse{0%,100%{opacity:0.4}50%{opacity:0.68}}
+@keyframes ringPulseB{0%,100%{opacity:0.15}50%{opacity:0.3}}
 @keyframes ringBreath{0%,100%{filter:blur(16px)}50%{filter:blur(26px)}}
 @media (prefers-reduced-motion:reduce){#frame [data-ring],#frame [data-ring-b]{animation:none!important}}
 </style>
@@ -316,13 +321,17 @@
                 <div><div style="font-size:13px;font-weight:500;letter-spacing:0.02em;color:#1B3A2D;margin-bottom:7px">Jméno a příjmení <span style="color:#C44217">*</span></div><input class="inp" style="width:100%;box-sizing:border-box;height:48px;padding:0 14px;background:#FFFFFF;border:1px solid #B8D9BE;border-radius:6px;font-size:16px;color:#1B3A2D;transition:border-color 200ms"></div>
                 <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px">
                   <div><div style="font-size:13px;font-weight:500;letter-spacing:0.02em;color:#1B3A2D;margin-bottom:7px">E-mail <span style="color:#C44217">*</span></div><input class="inp" style="width:100%;box-sizing:border-box;height:48px;padding:0 14px;background:#FFFFFF;border:1px solid #B8D9BE;border-radius:6px;font-size:16px;color:#1B3A2D;transition:border-color 200ms"></div>
-                  <div><div style="font-size:13px;font-weight:500;letter-spacing:0.02em;color:#1B3A2D;margin-bottom:7px">Telefon <span style="font-weight:400;color:#5E7368">· nepovinné</span></div><input class="inp" style="width:100%;box-sizing:border-box;height:48px;padding:0 14px;background:#FFFFFF;border:1px solid #B8D9BE;border-radius:6px;font-size:16px;color:#1B3A2D;transition:border-color 200ms"></div>
+                  <div><div style="font-size:13px;font-weight:500;letter-spacing:0.02em;color:#1B3A2D;margin-bottom:7px">Telefon <span style="font-weight:400;font-size:11px;color:#7E8C84">nepovinné</span></div><input class="inp" style="width:100%;box-sizing:border-box;height:48px;padding:0 14px;background:#FFFFFF;border:1px solid #B8D9BE;border-radius:6px;font-size:16px;color:#1B3A2D;transition:border-color 200ms"></div>
                 </div>
-                <div><div style="font-size:13px;font-weight:500;letter-spacing:0.02em;color:#1B3A2D;margin-bottom:7px">Adresa pozemku</div><input class="inp" style="width:100%;box-sizing:border-box;height:48px;padding:0 14px;background:#FFFFFF;border:1px solid #B8D9BE;border-radius:6px;font-size:16px;color:#1B3A2D;transition:border-color 200ms"></div>
+                <div style="display:grid;grid-template-columns:2fr 1.4fr 1fr;gap:16px">
+                  <div><div style="font-size:13px;font-weight:500;letter-spacing:0.02em;color:#1B3A2D;margin-bottom:7px">Ulice a číslo domu <span style="color:#C44217">*</span></div><input class="inp" style="width:100%;box-sizing:border-box;height:48px;padding:0 14px;background:#FFFFFF;border:1px solid #B8D9BE;border-radius:6px;font-size:16px;color:#1B3A2D;transition:border-color 200ms"></div>
+                  <div><div style="font-size:13px;font-weight:500;letter-spacing:0.02em;color:#1B3A2D;margin-bottom:7px">Město <span style="color:#C44217">*</span></div><input class="inp" style="width:100%;box-sizing:border-box;height:48px;padding:0 14px;background:#FFFFFF;border:1px solid #B8D9BE;border-radius:6px;font-size:16px;color:#1B3A2D;transition:border-color 200ms"></div>
+                  <div><div style="font-size:13px;font-weight:500;letter-spacing:0.02em;color:#1B3A2D;margin-bottom:7px">PSČ <span style="color:#C44217">*</span></div><input class="inp" style="width:100%;box-sizing:border-box;height:48px;padding:0 14px;background:#FFFFFF;border:1px solid #B8D9BE;border-radius:6px;font-size:16px;color:#1B3A2D;transition:border-color 200ms"></div>
+                </div>
                 <div><div style="font-size:13px;font-weight:500;letter-spacing:0.02em;color:#1B3A2D;margin-bottom:7px">S čím vám pomůžeme <span style="color:#C44217">*</span></div><textarea class="inp" style="width:100%;box-sizing:border-box;height:112px;padding:12px 14px;background:#FFFFFF;border:1px solid #B8D9BE;border-radius:6px;font-size:16px;color:#1B3A2D;transition:border-color 200ms;resize:vertical"></textarea></div>
                 <div data-ok="" style="display:none;align-items:center;gap:10px;background:rgba(184,217,190,0.35);border:1px solid #4A8C5C;border-radius:6px;padding:12px 16px;font-size:15px;color:#1B3A2D">Poptávka dorazila. Odpovíme do 24 hodin.</div>
                 <div class="send" data-send="" role="button" style="margin-top:4px;display:inline-flex;align-items:center;gap:12px;height:56px;padding:0 36px;background:#E8673C;color:#1B3A2D;font-size:19px;font-weight:700;border-radius:6px;align-self:flex-start;cursor:pointer;transition:background 200ms,color 200ms,transform 200ms">Odeslat poptávku<span style="font-weight:600">→</span></div>
-                <div style="margin-top:-6px;font-size:14px;color:#5E7368">Nezávazná poptávka</div>
+                <div style="margin-top:-6px;font-size:14px;color:#5E7368">Nezávazná poptávka, odpovíme do 24 hodin</div>
               </div>
               </div>
               <div data-rv="120" style="padding-top:8px">
