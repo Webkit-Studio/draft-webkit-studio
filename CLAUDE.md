@@ -141,6 +141,17 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
 
 ## Postupy
 
+### Nový item (nová položka projektu)
+1. „Založ v `<projektu>` nový item, název `<X>`" = vzít přiložený export,
+   pojmenovat položku přesně podle zadání (žádné vlastní názvy) a přidat ji:
+   složka `/<slug>/v<N>/`, řádek verze na stránce klienta, comments.js na
+   `data-version="v<N>"`. Detaily níž v „Nová verze návrhu".
+2. **Hotové jde do `main`.** Pages staví z `main` – dokud tam item není,
+   klient ho nevidí a je to, jako by nevznikl. Odladěná větev není hotovo.
+3. Když je push do `main` zablokovaný, říct to hned v první odpovědi
+   a rovnou nabídnout merge. Nikdy nehlásit „hotovo" nad něčím, co leží
+   jen na větvi.
+
 ### Nový klient
 1. V Supabase založit/upravit uživatele klienta: heslo drží Lukáš mimo
    repo, `user_metadata` = `first_name`, `last_name`. Přístup k projektům
