@@ -116,6 +116,12 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
   plné), Odpovědět (šipka jako u e-mailu), Upravit (tužka, jen vlastní
   komentář – i odpověď, PATCH `body`), Kopírovat odkaz (článek řetězu,
   po zkopírování bublina „Zkopírováno") a Smazat (koš, jen admin).
+- Omezení „jen vlastní" nedrží prohlížeč, ale databáze: trigger
+  `comments_guard_update` pouští změnu `body`/`section`/`x`/`y` jen
+  autorovi (a adminovi), `resolved` komukoli s přístupem k projektu
+  (RLS politika `resolve`) a sloupce identity (`id`, `project`,
+  `version`, `view`, `parent_id`, `author_id`, `author_name`,
+  `created_at`) zmrazí úplně.
 - Fáze B: filtry stav/zobrazení/autor (kombinují se, localStorage
   `draft-filters-<projekt>`, platí i pro piny; počítadlo v liště je vždy
   počet nevyřešených), nepřečtené (localStorage `seen-<projekt>-<verze>`,
