@@ -93,7 +93,7 @@
     'animation:cpulse 200ms var(--ease-out,cubic-bezier(0.2,0,0,1)) 2}',
     '@keyframes cpulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.35)}}',
     /* režim výběru místa */
-    '.ccatch{position:fixed;z-index:16;cursor:crosshair;display:none}',
+    '.ccatch{position:fixed;z-index:16;cursor:crosshair;display:none;touch-action:manipulation}',
     '.ccatch.on{display:block}',
     '.c-hl{outline:2px solid var(--accent,#ff4d00)!important;outline-offset:-2px!important}',
     /* panel – hlava je vysoká jako lišta a je s ní v jedné řadě */
@@ -439,11 +439,43 @@
 
   /* ---------- REST ---------- */
 
+  /* Chyba nese stav i hlášku z PostgRESTu – bez toho se v prohlížeči klienta
+     nedá poznat, jestli spadla session, RLS, nebo jen síť. */
+  function restError(status, detail) {
+    var err = new Error('rest-' + status);
+    err.status = status;
+    err.detail = detail || '';
+    return err;
+  }
+
   function restFetch(url, opts) {
     return window.draftAuth.fetch(url, opts).then(function (res) {
-      if (!res.ok) throw new Error('rest-' + res.status);
-      return res.status === 204 ? null : res.json();
+      if (res.ok) return res.status === 204 ? null : res.json();
+      return res.text().then(function (body) {
+        var detail = '';
+        try {
+          var j = JSON.parse(body);
+          detail = j.message || j.error_description || j.error || j.hint || '';
+        } catch (e) { detail = (body || '').slice(0, 200); }
+        throw restError(res.status, detail);
+      }, function () { throw restError(res.status, ''); });
+    }, function (netErr) {
+      /* sem spadne i chybějící session z gate.js a výpadek sítě */
+      throw restError(0, netErr && netErr.message ? netErr.message : 'network');
     });
+  }
+
+  /* Srozumitelná hláška pro klienta + stav pro nás. Rozlišuje případy, které
+     v praxi nastanou: spadlá session, odepřený zápis (RLS), vadná data, síť. */
+  function restMessage(err, what) {
+    var s = err && err.status;
+    var akce = what || 'Komentář';
+    if (s === 0) return akce + ' se neodeslal – nejste připojeni. Zkontrolujte síť a zkuste to znovu.';
+    if (s === 401) return akce + ' se neuložil – přihlášení vypršelo. Načtěte stránku znovu a přihlaste se.';
+    if (s === 403) return akce + ' se neuložil – k tomuto projektu nemáte oprávnění zapisovat. Napište nám.';
+    if (s === 400 || s === 409 || s === 422) return akce + ' se neuložil – data odmítl server (' + s + '). Napište nám.';
+    if (s >= 500) return akce + ' se neuložil – server neodpovídá (' + s + '). Zkuste to za chvíli.';
+    return akce + ' se neuložil (' + (s || '?') + ') – zkuste to znovu.';
   }
 
   function loadAll() {
@@ -796,19 +828,19 @@
     for (var s = 0; s < sectionOrder.length; s++) {
       var label = sectionOrder[s];
       var inSection = list.filter(function (c) { return c.view === VIEW && c.section === label; });
-      if (inSection.length) put(VIEW + ' ' + label, { view: VIEW, section: label, live: true, items: inSection });
+      if (inSection.length) put(VIEW + '\u0000' + label, { view: VIEW, section: label, live: true, items: inSection });
     }
     /* zaniklé sekce aktuálního pohledu */
     var rest = list.filter(function (c) { return c.view === VIEW && !sections[c.section]; });
     for (var i = 0; i < rest.length; i++) {
-      var key = VIEW + ' ' + rest[i].section;
+      var key = VIEW + '\u0000' + rest[i].section;
       if (!map[key]) put(key, { view: VIEW, section: rest[i].section, live: false, items: [] });
       map[key].items.push(rest[i]);
     }
     /* druhý pohled – podle času prvního komentáře */
     var other = list.filter(function (c) { return c.view !== VIEW; });
     for (var j = 0; j < other.length; j++) {
-      var okey = other[j].view + ' ' + other[j].section;
+      var okey = other[j].view + '\u0000' + other[j].section;
       if (!map[okey]) put(okey, { view: other[j].view, section: other[j].section, live: null, items: [] });
       map[okey].items.push(other[j]);
     }
@@ -948,8 +980,8 @@
       items = rows.concat(pending);
       noteEl.hidden = true;
       render();
-    }, function () {
-      noteEl.textContent = 'Komentáře se nenačetly – zkuste to znovu.';
+    }, function (err) {
+      noteEl.textContent = restMessage(err, 'Seznam komentářů');
       noteEl.hidden = false;
     });
   }
@@ -1056,11 +1088,11 @@
       author_name: window.draftUser.name, body: text
     }).then(function (row) {
       replaceTmp(tmp.id, row);
-    }, function () {
+    }, function (err) {
       removeTmp(tmp.id);
       draft = ctx;
       compText.value = text;
-      openComposer(at.x, at.y, 'Komentář se neuložil – zkuste to znovu.');
+      openComposer(at.x, at.y, restMessage(err));
       render();
     });
   }
@@ -1090,12 +1122,12 @@
       author_name: window.draftUser.name, body: text
     }).then(function (row) {
       replaceTmp(tmp.id, row);
-    }, function () {
+    }, function (err) {
       removeTmp(tmp.id);
       replyFor = rootId;
       replyText = text;
       render();
-      showFormError(rootId, 'Komentář se neuložil – zkuste to znovu.');
+      showFormError(rootId, restMessage(err, 'Odpověď'));
     });
   }
 
@@ -1132,12 +1164,12 @@
     render();
     patchBody(id, text).then(function () {
       noteEl.hidden = true;
-    }, function () {
+    }, function (err) {
       c.body = before;
       editFor = id;
       editText = text;
       render();
-      showFormError(id, 'Úprava se neuložila – zkuste to znovu.');
+      showFormError(id, restMessage(err, 'Úprava'));
     });
   }
 
@@ -1161,10 +1193,10 @@
     render();
     patchResolved(id, value).then(function () {
       noteEl.hidden = true;
-    }, function () {
+    }, function (err) {
       c.resolved = !value;
       render();
-      noteEl.textContent = 'Změna se neuložila – zkuste to znovu.';
+      noteEl.textContent = restMessage(err, 'Změna stavu');
       noteEl.hidden = false;
     });
   }
@@ -1320,30 +1352,70 @@
     compSave.addEventListener('click', submitRoot);
     compCancel.addEventListener('click', function () { closeComposer(); });
 
-    catchLayer.addEventListener('mousemove', function (e) {
-      var sec = sectionAt(e.clientX, e.clientY);
+    /* Umístění pinu. Na dotykových zařízeních se na syntetický click spolehnout
+       nedá – prohlížeč ho po prvním klepnutí spolkne jako emulaci najetí, takže
+       se composer neotevřel a komentář nešlo vůbec odeslat. Rozhoduje proto
+       pointerup: pokrývá myš, dotyk i pero. Tažení = rolování, pin neumísťuje. */
+    function hoverSection(x, y) {
+      var sec = sectionAt(x, y);
       if (sec !== hlEl) {
         clearHl();
         if (sec) { hlEl = sec; sec.classList.add('c-hl'); }
       }
-    });
-    catchLayer.addEventListener('mouseleave', clearHl);
-    catchLayer.addEventListener('click', function (e) {
-      var sec = sectionAt(e.clientX, e.clientY);
-      if (!sec) return;
+    }
+
+    function placePin(x, y) {
+      var sec = sectionAt(x, y);
+      if (!sec) {
+        /* mimo sekci plátna – bez odezvy by to vypadalo jako rozbité tlačítko */
+        if (window.draftTip) window.draftTip.flash(barAdd, 'Klepněte do některé sekce návrhu');
+        return;
+      }
       var r = sec.getBoundingClientRect();
       draft = {
         section: sec.getAttribute('data-screen-label'),
-        x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)),
-        y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))
+        x: Math.min(1, Math.max(0, (x - r.left) / r.width)),
+        y: Math.min(1, Math.max(0, (y - r.top) / r.height))
       };
-      lastPoint = { x: e.clientX, y: e.clientY };
+      lastPoint = { x: x, y: y };
       exitPick();
       compText.value = '';
-      openComposer(e.clientX, e.clientY);
+      openComposer(x, y);
       render();
       schedule();
-    });
+    }
+
+    if (window.PointerEvent) {
+      var tap = null;
+      catchLayer.addEventListener('pointerdown', function (e) {
+        if (!e.isPrimary) { tap = null; return; }
+        tap = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false };
+      });
+      catchLayer.addEventListener('pointermove', function (e) {
+        if (e.pointerType === 'mouse') hoverSection(e.clientX, e.clientY);
+        if (tap && e.pointerId === tap.id &&
+            (Math.abs(e.clientX - tap.x) > 10 || Math.abs(e.clientY - tap.y) > 10)) {
+          tap.moved = true;
+        }
+      });
+      /* prst převzalo rolování stránky */
+      catchLayer.addEventListener('pointercancel', function (e) {
+        if (tap && e.pointerId === tap.id) tap = null;
+        clearHl();
+      });
+      catchLayer.addEventListener('pointerup', function (e) {
+        if (!tap || e.pointerId !== tap.id) return;
+        var moved = tap.moved;
+        tap = null;
+        clearHl();
+        if (!moved) placePin(e.clientX, e.clientY);
+      });
+      catchLayer.addEventListener('pointerleave', clearHl);
+    } else {
+      catchLayer.addEventListener('mousemove', function (e) { hoverSection(e.clientX, e.clientY); });
+      catchLayer.addEventListener('mouseleave', clearHl);
+      catchLayer.addEventListener('click', function (e) { placePin(e.clientX, e.clientY); });
+    }
 
     pinsLayer.addEventListener('click', function (e) {
       var pin = e.target.closest ? e.target.closest('.cpin[data-id]') : null;
@@ -1400,8 +1472,8 @@
           if (replyFor && !byId(replyFor)) { replyFor = null; replyText = ''; }
           if (editFor && !byId(editFor)) { editFor = null; editText = ''; }
           render();
-        }, function () {
-          noteEl.textContent = 'Komentář se nepodařilo smazat – zkuste to znovu.';
+        }, function (err) {
+          noteEl.textContent = restMessage(err, 'Smazání');
           noteEl.hidden = false;
         });
         return;
@@ -1480,9 +1552,9 @@
       render();
       openFromHash();
       window.addEventListener('hashchange', openFromHash);
-    }, function () {
+    }, function (err) {
       barBtn.hidden = false;
-      noteEl.textContent = 'Komentáře se nenačetly – zkuste to znovu.';
+      noteEl.textContent = restMessage(err, 'Seznam komentářů');
       noteEl.hidden = false;
     });
   }
